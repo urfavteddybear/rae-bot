@@ -18,7 +18,9 @@ export default {
         if (!channelId) return;
         setTimeout(async () => {
           try {
-            await player.connect(channelId, { deaf: true });
+            player.voiceChannelId = channelId;
+            player.options.voiceChannelId = channelId;
+            await player.connect();
             log.info(`[247] Rejoined ${channelId} in ${guild.name}`);
           } catch (err) {
             log.warn(`[247] Failed to rejoin: ${err.message}`);

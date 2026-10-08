@@ -48,6 +48,12 @@ export default {
         selfDeaf:       true,
         volume:         80,
       });
+    } else {
+      if (player.voiceChannelId !== vc.channel.id) {
+        player.voiceChannelId = vc.channel.id;
+        player.options.voiceChannelId = vc.channel.id;
+      }
+      player.textChannelId = interaction.channelId;
     }
     if (!player.connected) await player.connect();
 

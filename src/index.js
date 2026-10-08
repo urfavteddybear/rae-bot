@@ -41,7 +41,11 @@ client.lavalink = new LavalinkManager({
   nodes,
   sendToShard: (guildId, payload) => {
     const guild = client.guilds.cache.get(guildId);
-    guild?.shard?.send(payload);
+    if (guild?.shard) {
+      guild.shard.send(payload);
+    } else {
+      client.ws.shards.first()?.send(payload);
+    }
   },
   autoSkip: true,
   client: {
@@ -59,6 +63,9 @@ client.lavalink = new LavalinkManager({
     maxPreviousTracks: 25,
   },
 });
+
+// ── Raw Gateway Forwarding ─────────────────────────────────────────────────
+client.on('raw', (data) => client.lavalink.sendRawData(data));
 
 // ── Database ───────────────────────────────────────────────────────────────
 initDatabase();

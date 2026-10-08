@@ -23,6 +23,10 @@ export default {
         selfDeaf:       true,
         volume:         80,
       });
+    } else {
+      player.voiceChannelId = vc.channel.id;
+      player.options.voiceChannelId = vc.channel.id;
+      player.textChannelId = interaction.channelId;
     }
 
     await player.connect();
