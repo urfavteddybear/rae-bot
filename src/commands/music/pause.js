@@ -11,7 +11,7 @@ export default {
     if (!player) return;
 
     if (player.paused) return replyError(interaction, 'Already paused. Use `/resume`.');
-    await player.pause(true);
+    await player.pause();
     await replySuccess(interaction, 'Paused the player. Use `/resume` to continue.');
   },
 };

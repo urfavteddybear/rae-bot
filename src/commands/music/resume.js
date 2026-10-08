@@ -11,7 +11,7 @@ export default {
     if (!player) return;
 
     if (!player.paused) return replyError(interaction, 'The player is not paused.');
-    await player.pause(false);
+    await player.resume();
     await replySuccess(interaction, 'Resumed playback.');
   },
 };
