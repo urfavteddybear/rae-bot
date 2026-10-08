@@ -1,0 +1,29 @@
+import { SlashCommandBuilder } from 'discord.js';
+import { requirePlayer, replyError, replySuccess } from '../../utils/embeds.js';
+
+export default {
+  data: new SlashCommandBuilder()
+    .setName('loop')
+    .setDescription('Set the loop mode')
+    .addStringOption(o => o
+      .setName('mode')
+      .setDescription('Loop mode')
+      .setRequired(true)
+      .addChoices(
+        { name: 'Off',   value: 'none' },
+        { name: 'Track', value: 'track' },
+        { name: 'Queue', value: 'queue' },
+      )),
+
+  async execute(interaction, client) {
+    const player = await requirePlayer(interaction);
+    if (!player) return;
+
+    const mode = interaction.options.getString('mode', true);
+    player.setRepeatMode(mode);
+
+    const icons = { none: '▶️', track: '🔂', queue: '🔁' };
+    const labels = { none: 'Off', track: 'Track', queue: 'Queue' };
+    await replySuccess(interaction, `${icons[mode]}  Loop mode set to **${labels[mode]}**.`);
+  },
+};

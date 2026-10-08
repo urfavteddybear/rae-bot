@@ -1,0 +1,42 @@
+services:
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4
+    container_name: lavalink
+    restart: unless-stopped
+    environment:
+      - _JAVA_OPTIONS=-Xmx512m
+      - SERVER_PORT=2333
+      - LAVALINK_SERVER_PASSWORD=youshallnotpass
+    volumes:
+      - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
+      - ./lavalink/plugins:/opt/Lavalink/plugins
+    networks:
+      - bot-network
+    expose:
+      - "2333"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:2333/v4/info -H 'Authorization: youshallnotpass' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  bot:
+    build: .
+    container_name: rae-bot
+    restart: unless-stopped
+    depends_on:
+      lavalink:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    networks:
+      - bot-network
+    environment:
+      - LAVALINK_NODES=[{"host":"lavalink","port":2333,"authorization":"youshallnotpass","secure":false,"id":"main"}]
+
+networks:
+  bot-network:
+    driver: bridge
