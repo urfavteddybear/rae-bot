@@ -38,7 +38,7 @@ export default {
               voiceChannelId: row.voice_channel_id,
               textChannelId: row.text_channel_id || null,
               selfDeaf: true,
-              volume: 80,
+              volume: 100,
             });
           }
           await player.connect();

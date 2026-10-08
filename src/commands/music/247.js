@@ -28,7 +28,7 @@ export default {
           voiceChannelId,
           textChannelId,
           selfDeaf: true,
-          volume: 80,
+          volume: 100,
         });
         await player.connect();
       }

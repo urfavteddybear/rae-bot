@@ -9,7 +9,7 @@ A fast, lightweight, self-hostable Discord music bot built with **Discord.js v14
 ## ✨ Features
 
 - **28 slash commands** across music, queue, and info categories
-- **Deezer-first** playback with Spotify / Apple Music / SoundCloud / YouTube support
+- Spotify / Apple Music / SoundCloud / YouTube support
 - **24/7 mode** — persisted per guild in SQLite, auto-rejoin on disconnect
 - **Autoplay** — continues playing related tracks when queue ends
 - **Lyrics** — powered by LavaSrc's built-in lyrics endpoint

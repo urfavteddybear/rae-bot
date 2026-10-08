@@ -69,6 +69,7 @@ client.lavalink = new LavalinkManager({
   },
   playerOptions: {
     applyVolumeAsFilter: false,
+    defaultVolume: 100,
     clientBasedPositionUpdateInterval: 150,
     defaultSearchPlatform: process.env.DEFAULT_SEARCH_ENGINE ?? 'dzsearch',
     onDisconnect: { destroyPlayer: false, autoReconnect: true },

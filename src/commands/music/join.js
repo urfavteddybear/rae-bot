@@ -21,7 +21,7 @@ export default {
         voiceChannelId: vc.channel.id,
         textChannelId:  interaction.channelId,
         selfDeaf:       true,
-        volume:         80,
+        volume:         100,
       });
     } else {
       player.voiceChannelId = vc.channel.id;
