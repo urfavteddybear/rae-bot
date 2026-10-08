@@ -23,6 +23,12 @@ export default {
       } catch { /* fall through */ }
     }
 
+    const prevMsg = player.get('nowPlayingMessage');
+    if (prevMsg) {
+      prevMsg.delete().catch(() => {});
+      player.set('nowPlayingMessage', null);
+    }
+
     if (channel?.isTextBased()) {
       channel.send({ embeds: [embed('Queue finished. Add more songs with `/play`')] }).catch(() => {});
     }

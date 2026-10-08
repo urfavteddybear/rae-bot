@@ -11,12 +11,17 @@ mkdirSync(DATA_DIR, { recursive: true });
 
 /** @type {Database.Database} */
 let db;
+let stmtGetGuild;
+let stmtInsertGuild;
+let stmtSetStay247On;
+let stmtSetStay247Off;
 
 export function initDatabase() {
   db = new Database(join(DATA_DIR, 'rae.db'));
   db.pragma('journal_mode = WAL');
   db.pragma('synchronous = NORMAL');
   db.pragma('foreign_keys = ON');
+  db.pragma('cache_size = -2000');
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS guilds (
@@ -31,6 +36,15 @@ export function initDatabase() {
   try { db.exec('ALTER TABLE guilds ADD COLUMN voice_channel_id TEXT;'); } catch {}
   try { db.exec('ALTER TABLE guilds ADD COLUMN text_channel_id TEXT;'); } catch {}
 
+  stmtGetGuild = db.prepare('SELECT * FROM guilds WHERE id = ?');
+  stmtInsertGuild = db.prepare('INSERT OR IGNORE INTO guilds (id) VALUES (?)');
+  stmtSetStay247On = db.prepare(
+    'UPDATE guilds SET stay247 = 1, voice_channel_id = ?, text_channel_id = ? WHERE id = ?'
+  );
+  stmtSetStay247Off = db.prepare(
+    'UPDATE guilds SET stay247 = 0, voice_channel_id = NULL, text_channel_id = NULL WHERE id = ?'
+  );
+
   log.info('Database initialised');
   return db;
 }
@@ -43,10 +57,10 @@ export function getDb() {
 
 /** Ensure a guild row exists, return the row. */
 export function getGuild(guildId) {
-  let row = db.prepare('SELECT * FROM guilds WHERE id = ?').get(guildId);
+  let row = stmtGetGuild.get(guildId);
   if (!row) {
-    db.prepare('INSERT OR IGNORE INTO guilds (id) VALUES (?)').run(guildId);
-    row = db.prepare('SELECT * FROM guilds WHERE id = ?').get(guildId);
+    stmtInsertGuild.run(guildId);
+    row = stmtGetGuild.get(guildId);
   }
   return row;
 }
@@ -55,14 +69,10 @@ export function getGuild(guildId) {
 export function setStay247(guildId, value, voiceChannelId = null, textChannelId = null) {
   getGuild(guildId); // ensure row exists
   if (value) {
-    db.prepare(
-      'UPDATE guilds SET stay247 = 1, voice_channel_id = ?, text_channel_id = ? WHERE id = ?'
-    ).run(voiceChannelId, textChannelId, guildId);
+    stmtSetStay247On.run(voiceChannelId, textChannelId, guildId);
     return true;
   }
-  db.prepare(
-    'UPDATE guilds SET stay247 = 0, voice_channel_id = NULL, text_channel_id = NULL WHERE id = ?'
-  ).run(guildId);
+  stmtSetStay247Off.run(guildId);
   return false;
 }
 

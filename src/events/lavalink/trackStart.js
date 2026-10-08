@@ -8,8 +8,16 @@ export default {
     const channel = client.channels.cache.get(player.textChannelId);
     if (!channel?.isTextBased()) return;
 
+    // Delete the previous now playing message to prevent chat clutter
+    const prevMsg = player.get('nowPlayingMessage');
+    if (prevMsg) {
+      prevMsg.delete().catch(() => {});
+      player.set('nowPlayingMessage', null);
+    }
+
     try {
-      await channel.send({ embeds: [nowPlayingEmbed(player)] });
+      const msg = await channel.send({ embeds: [nowPlayingEmbed(player)] });
+      player.set('nowPlayingMessage', msg);
     } catch (err) {
       log.warn(`trackStart: could not send to channel ${player.textChannelId}: ${err.message}`);
     }

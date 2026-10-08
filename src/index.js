@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Client, GatewayIntentBits, Collection, ActivityType } from 'discord.js';
+import { Client, GatewayIntentBits, Collection, ActivityType, Options } from 'discord.js';
 import { LavalinkManager } from 'lavalink-client';
 import { loadCommands } from './handlers/commandHandler.js';
 import { loadEvents } from './handlers/eventHandler.js';
@@ -20,9 +20,24 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildVoiceStates,
-    GatewayIntentBits.GuildMessages,
   ],
   allowedMentions: { parse: ['users'], repliedUser: false },
+  makeCache: Options.cacheWithLimits({
+    MessageManager: 0,
+    BaseGuildEmojiManager: 0,
+    GuildEmojiManager: 0,
+    GuildStickerManager: 0,
+    GuildScheduledEventManager: 0,
+    ReactionManager: 0,
+    ReactionUserManager: 0,
+    StageInstanceManager: 0,
+    ThreadManager: 0,
+    ThreadMemberManager: 0,
+    PresenceManager: 0,
+  }),
+  sweepers: {
+    users: { interval: 300, filter: () => user => user.id !== client.user?.id },
+  },
 });
 
 client.commands = new Collection();
@@ -54,7 +69,7 @@ client.lavalink = new LavalinkManager({
   },
   playerOptions: {
     applyVolumeAsFilter: false,
-    clientBasedPositionUpdateInterval: 50,
+    clientBasedPositionUpdateInterval: 150,
     defaultSearchPlatform: process.env.DEFAULT_SEARCH_ENGINE ?? 'dzsearch',
     onDisconnect: { destroyPlayer: false, autoReconnect: true },
     onEmptyQueue: { destroyAfterMs: 30_000 },
@@ -65,7 +80,11 @@ client.lavalink = new LavalinkManager({
 });
 
 // ── Raw Gateway Forwarding ─────────────────────────────────────────────────
-client.on('raw', (data) => client.lavalink.sendRawData(data));
+client.on('raw', (data) => {
+  if (data.t === 'VOICE_SERVER_UPDATE' || data.t === 'VOICE_STATE_UPDATE') {
+    client.lavalink.sendRawData(data);
+  }
+});
 
 // ── 24/7 Empty Queue Guard ────────────────────────────────────────────────
 client.lavalink.on('playerQueueEmptyStart', (player) => {

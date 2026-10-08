@@ -36,38 +36,51 @@ export default {
         }, 3000);
       } else {
         const player = client.lavalink.getPlayer(guild.id);
+        const timer = player?.get('alone_timer');
+        if (timer) clearTimeout(timer);
         try { await player?.destroy(); } catch { /* ignore */ }
       }
       return;
     }
 
-    // ── Bot left alone in channel ────────────────────────────────────────
-    if (!oldState.channelId) return;
+    // ── Check if members changed in the bot's voice channel ─────────────
     const botVc = guild.members.me?.voice?.channel;
     if (!botVc) return;
-    if (botVc.id !== oldState.channelId) return;
+
+    // Ignore events that don't involve the bot's current channel
+    if (oldState.channelId !== botVc.id && newState.channelId !== botVc.id) return;
+
+    const player = client.lavalink.getPlayer(guild.id);
+    if (!player) return;
+
+    const humanMembers = botVc.members.filter(m => !m.user.bot);
+
+    // Someone joined or is present in the channel -> cancel any pending alone disconnect timer
+    if (humanMembers.size > 0) {
+      const timer = player.get('alone_timer');
+      if (timer) {
+        clearTimeout(timer);
+        player.set('alone_timer', null);
+      }
+      return;
+    }
+
+    // ── Bot is alone in the channel ───────────────────────────────────────
+    // If 24/7 is enabled, the bot stays in VC
     if (getStay247(guild.id)) return;
 
-    const realMembers = botVc.members.filter(m => !m.user.bot);
-    if (realMembers.size === 0) {
-      const player = client.lavalink.getPlayer(guild.id);
-      if (!player) return;
-      // Pause and auto-destroy after 2 minutes
-      if (player.playing) player.pause(true);
+    // If songs are still playing / queued, the bot is allowed to stay in VC
+    if (player.playing || player.queue.current) return;
+
+    // Nothing playing, not 24/7, and no humans: auto-disconnect after 2 minutes
+    if (!player.get('alone_timer')) {
       const timer = setTimeout(async () => {
+        player.set('alone_timer', null);
         try {
           await player.destroy();
         } catch { /* ignore */ }
       }, 120_000);
-      // Resume if someone rejoins
-      const resume = (os, ns) => {
-        if (ns.channelId === botVc.id && !ns.member?.user.bot) {
-          clearTimeout(timer);
-          client.off('voiceStateUpdate', resume);
-          player.pause(false).catch(() => {});
-        }
-      };
-      client.on('voiceStateUpdate', resume);
+      player.set('alone_timer', timer);
     }
   },
 };

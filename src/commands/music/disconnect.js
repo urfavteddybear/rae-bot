@@ -10,6 +10,12 @@ export default {
     const player = await requirePlayer(interaction);
     if (!player) return;
 
+    const prevMsg = player.get('nowPlayingMessage');
+    if (prevMsg) {
+      prevMsg.delete().catch(() => {});
+      player.set('nowPlayingMessage', null);
+    }
+
     await player.destroy();
     await replySuccess(interaction, 'Disconnected and cleared the queue.');
   },
