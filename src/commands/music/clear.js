@@ -16,6 +16,6 @@ export default {
 
     const count = player.queue.tracks.length;
     player.queue.splice(0, player.queue.tracks.length);
-    await replySuccess(interaction, `🗑️  Cleared **${count}** tracks from the queue.`);
+    await replySuccess(interaction, `Cleared **${count}** tracks from the queue.`);
   },
 };

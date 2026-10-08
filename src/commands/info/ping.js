@@ -12,10 +12,10 @@ export default {
 
     const e = new EmbedBuilder()
       .setColor(parseInt(process.env.ACCENT_COLOR ?? '5865F2', 16))
-      .setTitle('🏓  Pong!')
+      .setTitle('Pong')
       .addFields(
-        { name: '🤖 Bot Latency', value: `\`${botPing}ms\``, inline: true },
-        { name: '🌐 API Latency', value: `\`${apiPing}ms\``, inline: true },
+        { name: 'Bot Latency', value: `\`${botPing}ms\``, inline: true },
+        { name: 'API Latency', value: `\`${apiPing}ms\``, inline: true },
       );
 
     await interaction.editReply({ embeds: [e] });

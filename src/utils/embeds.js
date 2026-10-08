@@ -1,4 +1,4 @@
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder, MessageFlags } from 'discord.js';
 
 const ACCENT = parseInt(process.env.ACCENT_COLOR ?? '5865F2', 16);
 
@@ -9,35 +9,33 @@ export function embed(description, colour = ACCENT) {
 }
 
 export function successEmbed(description) {
-  return embed(`✅  ${description}`, 0x57f287);
+  return embed(description, 0x57f287);
 }
 
 export function errorEmbed(description) {
-  return embed(`❌  ${description}`, 0xed4245);
+  return embed(description, 0xed4245);
 }
 
 export function warnEmbed(description) {
-  return embed(`⚠️  ${description}`, 0xfee75c);
+  return embed(description, 0xfee75c);
 }
 
 // ── Reply helpers ──────────────────────────────────────────────────────────
 
 /** Send an ephemeral error reply. */
 export async function replyError(interaction, message) {
-  const payload = { embeds: [errorEmbed(message)], ephemeral: true };
   if (interaction.deferred || interaction.replied) {
-    return interaction.editReply(payload);
+    return interaction.editReply({ embeds: [errorEmbed(message)] });
   }
-  return interaction.reply(payload);
+  return interaction.reply({ embeds: [errorEmbed(message)], flags: MessageFlags.Ephemeral });
 }
 
 /** Send an ephemeral success reply. */
 export async function replySuccess(interaction, message) {
-  const payload = { embeds: [successEmbed(message)], ephemeral: false };
   if (interaction.deferred || interaction.replied) {
-    return interaction.editReply(payload);
+    return interaction.editReply({ embeds: [successEmbed(message)] });
   }
-  return interaction.reply(payload);
+  return interaction.reply({ embeds: [successEmbed(message)] });
 }
 
 // ── Voice / player guards ──────────────────────────────────────────────────
@@ -101,7 +99,7 @@ export function msToTime(ms) {
 export function progressBar(current, total, size = 15) {
   const pct = Math.min(current / total, 1);
   const filled = Math.round(pct * size);
-  return '▬'.repeat(filled) + '🔘' + '▬'.repeat(size - filled);
+  return '━'.repeat(filled) + '●' + '─'.repeat(size - filled);
 }
 
 export function truncate(str, len = 50) {
@@ -111,19 +109,19 @@ export function truncate(str, len = 50) {
 
 export function sourceBadge(source) {
   const badges = {
-    deezer:      '<:deezer:0> Deezer',
-    spotify:     '<:spotify:0> Spotify',
-    applemusic:  '<:apple:0> Apple Music',
-    youtube:     '<:youtube:0> YouTube',
-    soundcloud:  '<:sc:0> SoundCloud',
-    bandcamp:    'Bandcamp',
-    twitch:      'Twitch',
-    http:        'HTTP',
+    deezer: 'Deezer',
+    spotify: 'Spotify',
+    applemusic: 'Apple Music',
+    youtube: 'YouTube',
+    soundcloud: 'SoundCloud',
+    bandcamp: 'Bandcamp',
+    twitch: 'Twitch',
+    http: 'HTTP',
   };
   return badges[source?.toLowerCase()] ?? source ?? 'Unknown';
 }
 
-export function nowPlayingEmbed(player, extra = {}) {
+export function nowPlayingEmbed(player) {
   const track = player.queue.current;
   if (!track) return errorEmbed('Nothing is playing.');
 
@@ -132,18 +130,18 @@ export function nowPlayingEmbed(player, extra = {}) {
   const isStream = track.info.isStream;
 
   const bar = isStream
-    ? '🔴 LIVE'
-    : `${msToTime(pos)} ${progressBar(pos, dur)} ${msToTime(dur)}`;
+    ? 'Live Stream'
+    : `${msToTime(pos)}  ${progressBar(pos, dur)}  ${msToTime(dur)}`;
 
-  const loopIcon = player.repeatMode === 'track'
-    ? '🔂'
-    : player.repeatMode === 'queue'
-    ? '🔁'
-    : '';
+  const status = player.repeatMode !== 'off'
+    ? `Loop (${player.repeatMode})`
+    : player.paused
+    ? 'Paused'
+    : 'Playing';
 
   return new EmbedBuilder()
     .setColor(ACCENT)
-    .setAuthor({ name: '🎵  Now Playing' })
+    .setAuthor({ name: 'Now Playing' })
     .setTitle(truncate(track.info.title, 60))
     .setURL(track.info.uri ?? null)
     .setDescription(bar)
@@ -151,7 +149,7 @@ export function nowPlayingEmbed(player, extra = {}) {
     .addFields(
       { name: 'Artist', value: truncate(track.info.author, 30), inline: true },
       { name: 'Volume', value: `${player.volume}%`, inline: true },
-      { name: loopIcon || '▶️', value: loopIcon ? 'Loop' : 'Playing', inline: true },
+      { name: 'Status', value: status, inline: true },
     )
     .setFooter({ text: `Requested by ${track.requester?.tag ?? 'Unknown'}` });
 }

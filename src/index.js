@@ -3,7 +3,7 @@ import { Client, GatewayIntentBits, Collection, ActivityType } from 'discord.js'
 import { LavalinkManager } from 'lavalink-client';
 import { loadCommands } from './handlers/commandHandler.js';
 import { loadEvents } from './handlers/eventHandler.js';
-import { initDatabase } from './utils/database.js';
+import { initDatabase, getStay247 } from './utils/database.js';
 import { log } from './utils/logger.js';
 
 // ── Validate required env vars ─────────────────────────────────────────────
@@ -66,6 +66,17 @@ client.lavalink = new LavalinkManager({
 
 // ── Raw Gateway Forwarding ─────────────────────────────────────────────────
 client.on('raw', (data) => client.lavalink.sendRawData(data));
+
+// ── 24/7 Empty Queue Guard ────────────────────────────────────────────────
+client.lavalink.on('playerQueueEmptyStart', (player) => {
+  if (getStay247(player.guildId)) {
+    const timer = player.getData('internal_queueempty');
+    if (timer) {
+      clearTimeout(timer);
+      player.setData('internal_queueempty', void 0);
+    }
+  }
+});
 
 // ── Database ───────────────────────────────────────────────────────────────
 initDatabase();

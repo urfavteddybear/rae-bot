@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder } from 'discord.js';
 import { requireVoice, replyError, replySuccess } from '../../utils/embeds.js';
 
 export default {
@@ -30,6 +30,6 @@ export default {
     }
 
     await player.connect();
-    await replySuccess(interaction, `✅  Joined **${vc.channel.name}**.`);
+    await replySuccess(interaction, `Joined **${vc.channel.name}**.`);
   },
 };

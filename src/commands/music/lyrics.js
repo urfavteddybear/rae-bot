@@ -119,7 +119,7 @@ export default {
       return interaction.editReply({
         embeds: [new EmbedBuilder()
           .setColor(0xed4245)
-          .setDescription(`❌  Could not reach lrclib.net: \`${err.message}\``)],
+          .setDescription(`Could not reach lrclib.net: \`${err.message}\``)],
       });
     }
 
@@ -128,7 +128,7 @@ export default {
         embeds: [new EmbedBuilder()
           .setColor(0xfee75c)
           .setDescription(
-            `⚠️  No lyrics found for **${truncate(trackName, 40)}**${artistName ? ` by **${truncate(artistName, 30)}**` : ''}.\n\n` +
+            `No lyrics found for **${truncate(trackName, 40)}**${artistName ? ` by **${truncate(artistName, 30)}**` : ''}.\n\n` +
             `Try specifying the song with \`/lyrics query:Song Title - Artist Name\`.`
           )],
       });
@@ -146,7 +146,7 @@ export default {
     }
 
     const pages = paginate(lyricsText);
-    const title = `📜  ${truncate(result.trackName, 45)}${result.artistName ? ` — ${truncate(result.artistName, 30)}` : ''}`;
+    const title = `${truncate(result.trackName, 45)}${result.artistName ? ` — ${truncate(result.artistName, 30)}` : ''}`;
 
     // ── Single page — no buttons needed ───────────────────────────────────
     if (pages.length === 1) {

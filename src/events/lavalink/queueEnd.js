@@ -24,7 +24,7 @@ export default {
     }
 
     if (channel?.isTextBased()) {
-      channel.send({ embeds: [embed('✅  Queue finished. Add more songs with `/play`!')] }).catch(() => {});
+      channel.send({ embeds: [embed('Queue finished. Add more songs with `/play`')] }).catch(() => {});
     }
   },
 };

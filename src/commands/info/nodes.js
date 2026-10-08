@@ -11,16 +11,15 @@ export default {
     const nodes = [...client.lavalink.nodeManager.nodes.values()];
 
     if (!nodes.length) {
-      return interaction.editReply({ content: '❌  No Lavalink nodes configured.' });
+      return interaction.editReply({ content: 'No Lavalink nodes configured.' });
     }
 
     const e = new EmbedBuilder()
       .setColor(parseInt(process.env.ACCENT_COLOR ?? '5865F2', 16))
-      .setTitle('🔌  Lavalink Nodes');
+      .setTitle('Lavalink Nodes');
 
     for (const node of nodes) {
       const stats = node.stats;
-      const statusIcon = node.connected ? '🟢' : '🔴';
       const players = stats?.players ?? 0;
       const playingPlayers = stats?.playingPlayers ?? 0;
       const memory = stats?.memory
@@ -32,7 +31,7 @@ export default {
       const ping = node.ping ?? -1;
 
       e.addFields({
-        name: `${statusIcon} ${node.id} — ${node.options.host}:${node.options.port}`,
+        name: `${node.id} — ${node.options.host}:${node.options.port}`,
         value: [
           `**Status:** ${node.connected ? 'Connected' : 'Disconnected'}`,
           `**Ping:** ${ping >= 0 ? `${ping}ms` : 'N/A'}`,

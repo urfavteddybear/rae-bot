@@ -15,6 +15,6 @@ export default {
     }
 
     player.queue.shuffle();
-    await replySuccess(interaction, `🔀  Shuffled **${player.queue.tracks.length}** tracks.`);
+    await replySuccess(interaction, `Shuffled **${player.queue.tracks.length}** tracks.`);
   },
 };

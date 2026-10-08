@@ -36,7 +36,17 @@ export default {
       await command.execute(interaction, client);
     } catch (err) {
       log.error(`Command ${command.data.name} threw: ${err.message}`);
-      await replyError(interaction, 'An unexpected error occurred. Please try again.');
+
+      let message = err.message || 'An unexpected error occurred. Please try again.';
+      if (err.message?.includes("Can't skip more than the queue size")) {
+        message = 'There are no more tracks in the queue to skip to.';
+      }
+
+      try {
+        await replyError(interaction, message);
+      } catch {
+        // ignore if interaction could not be replied to
+      }
     }
   },
 };

@@ -78,7 +78,7 @@ export default {
       await player.queue.add(res.tracks);
       await interaction.editReply({
         embeds: [embed(
-          `📋  Added playlist **${truncate(res.playlist?.name ?? 'Unknown', 40)}** — **${res.tracks.length}** tracks`,
+          `Added playlist **${truncate(res.playlist?.name ?? 'Unknown', 40)}** — **${res.tracks.length}** tracks`,
         )],
       });
     } else {
@@ -86,7 +86,7 @@ export default {
       await player.queue.add(track);
       await interaction.editReply({
         embeds: [embed(
-          `🎵  Added **[${truncate(track.info.title)}](${track.info.uri})** by **${truncate(track.info.author, 30)}**`,
+          `Added **[${truncate(track.info.title)}](${track.info.uri})** by **${truncate(track.info.author, 30)}**`,
         )],
       });
     }

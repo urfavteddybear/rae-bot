@@ -11,6 +11,6 @@ export default {
     if (!player) return;
 
     await player.seek(0);
-    await replySuccess(interaction, `🔄  Replaying **${truncate(player.queue.current.info.title)}**.`);
+    await replySuccess(interaction, `Replaying **${truncate(player.queue.current.info.title)}**.`);
   },
 };

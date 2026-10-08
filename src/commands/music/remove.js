@@ -24,6 +24,6 @@ export default {
 
     const removed = player.queue.tracks[idx];
     player.queue.splice(idx, 1);
-    await replySuccess(interaction, `🗑️  Removed **${truncate(removed.info.title)}** from position **${pos}**.`);
+    await replySuccess(interaction, `Removed **${truncate(removed.info.title)}** from position **${pos}**.`);
   },
 };

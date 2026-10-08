@@ -26,6 +26,6 @@ export default {
     // Remove all tracks before the jumped-to track
     player.queue.splice(0, idx);
     await player.skip();
-    await replySuccess(interaction, `⏭️  Jumped to **${truncate(track.info.title)}**.`);
+    await replySuccess(interaction, `Jumped to **${truncate(track.info.title)}**.`);
   },
 };

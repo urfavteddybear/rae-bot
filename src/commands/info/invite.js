@@ -11,7 +11,7 @@ export default {
 
     const e = new EmbedBuilder()
       .setColor(parseInt(process.env.ACCENT_COLOR ?? '5865F2', 16))
-      .setTitle('➕  Invite Rae to your server')
+      .setTitle('Invite Rae')
       .setDescription(`[Click here to invite me](${inviteUrl})`)
       .setThumbnail(client.user.displayAvatarURL());
 

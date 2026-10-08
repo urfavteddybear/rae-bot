@@ -22,8 +22,7 @@ export default {
     const mode = interaction.options.getString('mode', true);
     player.setRepeatMode(mode);
 
-    const icons = { none: '▶️', track: '🔂', queue: '🔁' };
     const labels = { none: 'Off', track: 'Track', queue: 'Queue' };
-    await replySuccess(interaction, `${icons[mode]}  Loop mode set to **${labels[mode]}**.`);
+    await replySuccess(interaction, `Loop mode set to **${labels[mode]}**.`);
   },
 };

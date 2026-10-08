@@ -5,6 +5,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
+  MessageFlags,
 } from 'discord.js';
 import { requirePlayer, replyError, truncate, msToTime } from '../../utils/embeds.js';
 
@@ -49,9 +50,9 @@ export default {
 
       const embed = new EmbedBuilder()
         .setColor(parseInt(process.env.ACCENT_COLOR ?? '5865F2', 16))
-        .setTitle('📋  Queue')
+        .setTitle('Queue')
         .setDescription(
-          `**Now Playing:**\n🎵 [${truncate(current?.info?.title ?? 'Nothing', 50)}](${current?.info?.uri ?? '#'}) — ${current?.info?.author ?? ''}\n\n**Up Next:**\n${queueList}`
+          `**Now Playing:**\n[${truncate(current?.info?.title ?? 'Nothing', 50)}](${current?.info?.uri ?? '#'}) — ${current?.info?.author ?? ''}\n\n**Up Next:**\n${queueList}`
         )
         .setFooter({ text: `Page ${safePage + 1}/${totalPages} • ${tracks.length} tracks • Total: ${msToTime(totalDuration)}` });
 
@@ -104,7 +105,7 @@ export default {
       if (btn.user.id !== interaction.user.id) {
         return btn.reply({
           content: 'Only the user who used `/queue` can navigate this menu.',
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
       }
 

@@ -12,6 +12,6 @@ export default {
 
     const current = player.get('autoplay') ?? false;
     player.set('autoplay', !current);
-    await replySuccess(interaction, `🔀  Autoplay is now **${!current ? 'enabled' : 'disabled'}**.`);
+    await replySuccess(interaction, `Autoplay is now **${!current ? 'enabled' : 'disabled'}**.`);
   },
 };

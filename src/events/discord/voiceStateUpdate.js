@@ -1,4 +1,4 @@
-import { getStay247 } from '../../utils/database.js';
+import { getStay247, getStay247Data } from '../../utils/database.js';
 import { log } from '../../utils/logger.js';
 
 export default {
@@ -9,17 +9,25 @@ export default {
 
     // ── Bot disconnected ─────────────────────────────────────────────────
     if (oldState.member?.id === client.user.id && !newState.channelId) {
-      const player = client.lavalink.getPlayer(guild.id);
-      if (!player) return;
-
-      if (getStay247(guild.id)) {
-        // Rejoin the same channel
-        const channelId = oldState.channelId;
+      const stayData = getStay247Data(guild.id);
+      if (stayData?.stay247) {
+        const channelId = stayData.voiceChannelId || oldState.channelId;
         if (!channelId) return;
         setTimeout(async () => {
           try {
-            player.voiceChannelId = channelId;
-            player.options.voiceChannelId = channelId;
+            let player = client.lavalink.getPlayer(guild.id);
+            if (!player) {
+              player = await client.lavalink.createPlayer({
+                guildId: guild.id,
+                voiceChannelId: channelId,
+                textChannelId: stayData.textChannelId,
+                selfDeaf: true,
+                volume: 80,
+              });
+            } else {
+              player.voiceChannelId = channelId;
+              player.options.voiceChannelId = channelId;
+            }
             await player.connect();
             log.info(`[247] Rejoined ${channelId} in ${guild.name}`);
           } catch (err) {
@@ -27,8 +35,8 @@ export default {
           }
         }, 3000);
       } else {
-        // Destroy player if not in 24/7 mode
-        try { await player.destroy(); } catch { /* ignore */ }
+        const player = client.lavalink.getPlayer(guild.id);
+        try { await player?.destroy(); } catch { /* ignore */ }
       }
       return;
     }

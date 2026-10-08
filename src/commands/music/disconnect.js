@@ -11,6 +11,6 @@ export default {
     if (!player) return;
 
     await player.destroy();
-    await replySuccess(interaction, '👋  Disconnected and cleared the queue.');
+    await replySuccess(interaction, 'Disconnected and cleared the queue.');
   },
 };

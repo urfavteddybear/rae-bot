@@ -20,10 +20,16 @@ export function initDatabase() {
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS guilds (
-      id          TEXT PRIMARY KEY,
-      stay247     INTEGER NOT NULL DEFAULT 0
+      id               TEXT PRIMARY KEY,
+      stay247          INTEGER NOT NULL DEFAULT 0,
+      voice_channel_id TEXT,
+      text_channel_id  TEXT
     );
   `);
+
+  // Safely migrate existing tables if columns are missing
+  try { db.exec('ALTER TABLE guilds ADD COLUMN voice_channel_id TEXT;'); } catch {}
+  try { db.exec('ALTER TABLE guilds ADD COLUMN text_channel_id TEXT;'); } catch {}
 
   log.info('Database initialised');
   return db;
@@ -45,14 +51,31 @@ export function getGuild(guildId) {
   return row;
 }
 
-/** Toggle or set 24/7 mode. Returns new value. */
-export function setStay247(guildId, value) {
-  getGuild(guildId); // ensure row
-  db.prepare('UPDATE guilds SET stay247 = ? WHERE id = ?').run(value ? 1 : 0, guildId);
-  return !!value;
+/** Toggle or set 24/7 mode with voice/text channel targets. */
+export function setStay247(guildId, value, voiceChannelId = null, textChannelId = null) {
+  getGuild(guildId); // ensure row exists
+  if (value) {
+    db.prepare(
+      'UPDATE guilds SET stay247 = 1, voice_channel_id = ?, text_channel_id = ? WHERE id = ?'
+    ).run(voiceChannelId, textChannelId, guildId);
+    return true;
+  }
+  db.prepare(
+    'UPDATE guilds SET stay247 = 0, voice_channel_id = NULL, text_channel_id = NULL WHERE id = ?'
+  ).run(guildId);
+  return false;
 }
 
 export function getStay247(guildId) {
   const row = getGuild(guildId);
-  return row.stay247 === 1;
+  return row?.stay247 === 1;
+}
+
+export function getStay247Data(guildId) {
+  const row = getGuild(guildId);
+  return {
+    stay247: row?.stay247 === 1,
+    voiceChannelId: row?.voice_channel_id ?? null,
+    textChannelId: row?.text_channel_id ?? null,
+  };
 }

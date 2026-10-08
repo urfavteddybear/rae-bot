@@ -76,7 +76,7 @@ export default {
 
     const row = new ActionRowBuilder().addComponents(...buttons);
     const msg = await interaction.editReply({
-      embeds: [embed(`🔍  **Search results for:** ${rawQuery}\n\n${desc}`)],
+      embeds: [embed(`**Search results for:** ${rawQuery}\n\n${desc}`)],
       components: [row],
     });
 
@@ -93,7 +93,7 @@ export default {
       await player.queue.add(track);
       if (!player.playing && !player.paused) await player.play();
       await btn.update({
-        embeds: [embed(`🎵  Added **[${truncate(track.info.title)}](${track.info.uri})** to the queue.`)],
+        embeds: [embed(`Added **[${truncate(track.info.title)}](${track.info.uri})** to the queue.`)],
         components: [],
       });
     });

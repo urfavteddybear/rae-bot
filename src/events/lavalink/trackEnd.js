@@ -10,7 +10,7 @@ export default {
     if (payload?.reason === 'loadFailed') {
       const channel = client.channels.cache.get(player.textChannelId);
       if (channel?.isTextBased()) {
-        channel.send({ embeds: [embed(`⚠️  Failed to load **${track?.info?.title ?? 'Unknown'}** — skipping.`, 0xfee75c)] }).catch(() => {});
+        channel.send({ embeds: [embed(`Failed to load **${track?.info?.title ?? 'Unknown'}** — skipping.`, 0xfee75c)] }).catch(() => {});
       }
     }
   },

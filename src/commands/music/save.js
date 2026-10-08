@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, MessageFlags } from 'discord.js';
 import { requirePlaying, replyError, truncate } from '../../utils/embeds.js';
 
 export default {
@@ -13,7 +13,7 @@ export default {
     const track = player.queue.current;
     const e = new EmbedBuilder()
       .setColor(parseInt(process.env.ACCENT_COLOR ?? '5865F2', 16))
-      .setTitle(`🎵  ${truncate(track.info.title, 60)}`)
+      .setTitle(truncate(track.info.title, 60))
       .setURL(track.info.uri ?? null)
       .setThumbnail(track.info.artworkUrl ?? null)
       .addFields(
@@ -24,9 +24,9 @@ export default {
 
     try {
       await interaction.user.send({ embeds: [e] });
-      await interaction.reply({ content: '📬  Track sent to your DMs!', ephemeral: true });
+      await interaction.reply({ content: 'Track sent to your DMs.', flags: MessageFlags.Ephemeral });
     } catch {
-      await interaction.reply({ content: '❌  I cannot DM you. Please enable DMs from server members.', ephemeral: true });
+      await interaction.reply({ content: 'Cannot send direct messages. Please enable DMs from server members.', flags: MessageFlags.Ephemeral });
     }
   },
 };
