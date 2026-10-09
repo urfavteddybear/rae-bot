@@ -3,7 +3,7 @@ import { Client, GatewayIntentBits, Collection, ActivityType, Options } from 'di
 import { LavalinkManager } from 'lavalink-client';
 import { loadCommands } from './handlers/commandHandler.js';
 import { loadEvents } from './handlers/eventHandler.js';
-import { initDatabase, getStay247 } from './utils/database.js';
+import { getStay247 } from './utils/stay247.js';
 import { log } from './utils/logger.js';
 
 // ── Validate required env vars ─────────────────────────────────────────────
@@ -98,8 +98,6 @@ client.lavalink.on('playerQueueEmptyStart', (player) => {
   }
 });
 
-// ── Database ───────────────────────────────────────────────────────────────
-initDatabase();
 
 // ── Load handlers ──────────────────────────────────────────────────────────
 await loadCommands(client);

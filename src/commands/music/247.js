@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from 'discord.js';
 import { replyError, embed } from '../../utils/embeds.js';
-import { setStay247, getStay247 } from '../../utils/database.js';
+import { setStay247, getStay247 } from '../../utils/stay247.js';
 
 export default {
   data: new SlashCommandBuilder()
@@ -43,7 +43,7 @@ export default {
       return interaction.reply({
         embeds: [
           embed(
-            '**24/7 mode enabled.** The bot will stay in voice and reconnect automatically on restart.',
+            '**24/7 mode enabled.** The bot will stay in voice indefinitely (resets on bot restart).',
             0x57f287,
           ),
         ],

@@ -1,4 +1,4 @@
-import { getStay247, getStay247Data } from '../../utils/database.js';
+import { getStay247, getStay247Data } from '../../utils/stay247.js';
 import { log } from '../../utils/logger.js';
 
 export default {

@@ -24,7 +24,7 @@ A fast, lightweight, self-hostable Discord music bot built with **Discord.js v14
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/yourname/rae
+git clone https://github.com/urfavteddybear/rae
 cd rae
 cp .env.example .env
 ```
@@ -209,13 +209,12 @@ rae/
 │   │   └── lavalink/         # trackStart, trackEnd, queueEnd, nodeConnect
 │   ├── handlers/             # Command & event auto-loaders
 │   └── utils/
-│       ├── database.js       # SQLite (better-sqlite3, WAL mode)
 │       ├── embeds.js         # Shared embed builders & guards
-│       └── logger.js         # Lightweight colour logger
+│       ├── logger.js         # Lightweight colour logger
+│       └── stay247.js        # In-memory 24/7 state store
 ├── lavalink/
 │   ├── application.yml       # Lavalink config (LavaSrc pre-configured)
 │   └── plugins/              # Drop LavaSrc JAR here
-├── data/                     # SQLite database (auto-created)
 ├── docker-compose.yml
 ├── Dockerfile
 └── .env.example

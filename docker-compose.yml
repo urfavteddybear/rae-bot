@@ -30,8 +30,6 @@ services:
         condition: service_healthy
     env_file:
       - .env
-    volumes:
-      - ./data:/app/data
     networks:
       - bot-network
     environment:
