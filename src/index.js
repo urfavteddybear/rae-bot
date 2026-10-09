@@ -4,6 +4,7 @@ import { LavalinkManager } from 'lavalink-client';
 import { loadCommands } from './handlers/commandHandler.js';
 import { loadEvents } from './handlers/eventHandler.js';
 import { initDatabase, getStay247 } from './utils/database.js';
+import { startWebServer } from './web/server.js';
 import { log } from './utils/logger.js';
 
 // ── Validate required env vars ─────────────────────────────────────────────
@@ -104,6 +105,9 @@ initDatabase();
 // ── Load handlers ──────────────────────────────────────────────────────────
 await loadCommands(client);
 await loadEvents(client);
+
+// ── Web Dashboard Server ───────────────────────────────────────────────────
+startWebServer(client);
 
 // ── Login ──────────────────────────────────────────────────────────────────
 await client.login(process.env.BOT_TOKEN);

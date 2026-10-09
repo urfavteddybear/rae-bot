@@ -4,7 +4,7 @@ const COMMANDS = [
   { category: 'Music',   list: ['play', 'search', 'nowplaying', 'queue', 'skip', 'pause', 'resume', 'volume', 'loop', 'shuffle'] },
   { category: 'Queue',   list: ['clear', 'remove', 'jump', 'move', 'previous', 'replay', 'seek', 'autoplay'] },
   { category: 'Player',  list: ['join', 'disconnect', '247', 'save', 'lyrics'] },
-  { category: 'Info',    list: ['help', 'invite', 'nodes', 'ping', 'stats'] },
+  { category: 'Info',    list: ['help', 'invite', 'nodes', 'ping', 'stats', 'dashboard'] },
 ];
 
 export default {
