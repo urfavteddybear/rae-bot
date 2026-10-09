@@ -143,9 +143,10 @@ npm start
 |---------|-------------|
 | `/join` | Join your voice channel |
 | `/disconnect` | Disconnect and clear queue |
-| `/247` | Toggle 24/7 mode (persisted) |
+| `/247` | Toggle 24/7 mode (in-memory) |
 | `/save` | Send current track to your DMs |
 | `/lyrics [query]` | Fetch song lyrics |
+| `/debug` | Show player & voice connection debug info |
 
 ### 📊 Info
 
