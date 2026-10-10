@@ -6,6 +6,7 @@ import { loadEvents } from './handlers/eventHandler.js';
 import { getStay247 } from './utils/stay247.js';
 import { log } from './utils/logger.js';
 import { startWebServer } from './web/server.js';
+import { initDatabase } from './utils/db.js';
 
 // ── Validate required env vars ─────────────────────────────────────────────
 const required = ['BOT_TOKEN', 'CLIENT_ID', 'LAVALINK_NODES'];
@@ -101,6 +102,7 @@ client.lavalink.on('playerQueueEmptyStart', (player) => {
 
 
 // ── Load handlers ──────────────────────────────────────────────────────────
+await initDatabase();
 await loadCommands(client);
 await loadEvents(client);
 

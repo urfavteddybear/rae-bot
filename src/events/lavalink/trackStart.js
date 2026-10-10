@@ -1,6 +1,7 @@
 import { log } from '../../utils/logger.js';
 import { nowPlayingEmbed } from '../../utils/embeds.js';
 import { topUpAutoplay } from '../../utils/autoplay.js';
+import { recordPlay } from '../../utils/db.js';
 
 export default {
   name: 'trackStart',
@@ -8,6 +9,9 @@ export default {
   async execute(player, track, payload, client) {
     // Queue the next songs now so autoplay never leaves a gap (and shows up in the queue).
     topUpAutoplay(player).catch(() => {});
+
+    // Profile stats: count this play for the person who queued the song.
+    recordPlay(player.guildId, track);
 
     const channel = client.channels.cache.get(player.textChannelId);
     if (!channel?.isTextBased()) return;

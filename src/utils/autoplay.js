@@ -12,6 +12,7 @@
  */
 import { log } from './logger.js';
 import { MAX_QUEUE_SIZE } from './limits.js';
+import { firstArtist, keyOf, norm } from './trackKey.js';
 
 const DEEZER = 'https://api.deezer.com';
 const LASTFM = 'https://ws.audioscrobbler.com/2.0/';
@@ -48,9 +49,6 @@ async function deezer(path) {
   return data;
 }
 
-const norm = (s) => String(s ?? '').toLowerCase().replace(/\s*[(\[].*?[)\]]/g, '').replace(/[^a-z0-9 ]/g, '').trim();
-const firstArtist = (s) => String(s ?? '').split(/,|&|\bfeat\.?\b|\bft\.?\b/i)[0].trim() || String(s ?? '');
-const keyOf = (title, artist) => `${norm(title)}|${norm(firstArtist(artist))}`;
 const quoteSafe = (s) => String(s ?? '').replace(/[(\[].*?[)\]]/g, '').replace(/["\\]/g, ' ').trim();
 
 function shuffle(list) {

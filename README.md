@@ -49,7 +49,7 @@ That's it. Lavalink starts first (health-checked), then the bot connects.
 docker exec rae-bot node src/deploy-commands.js
 ```
 
-Or locally (if Node.js ≥ 18 is installed):
+Or locally (if Node.js ≥ 22.13 is installed):
 ```bash
 npm install
 cp .env.example .env   # fill in BOT_TOKEN and CLIENT_ID
@@ -61,7 +61,7 @@ node src/deploy-commands.js
 ## 🛠️ Manual / No-Docker Setup
 
 ### Requirements
-- Node.js ≥ 18
+- Node.js ≥ 22.13 (profile stats use Node's built-in SQLite, so there is nothing to compile)
 - A running Lavalink v4 instance (local or remote)
 
 ### Install
@@ -99,6 +99,8 @@ An Apple Music-style web player for your servers: now playing with live progress
 2. Set `CLIENT_SECRET` and `DASHBOARD_URL` in `.env` (see `.env.example`). Without `CLIENT_SECRET` the dashboard stays off.
 3. Docker: `docker compose up -d --build` (the image builds the frontend). Open `http://localhost:3000`.
    Without Docker: `npm run build:web` then `npm start`.
+
+**Profile page:** each person gets a Profile tab with their plays, different songs, first played, most repeated songs and recently played songs in that server. A play is counted when a song starts, for the person who queued it (autoplay songs count for nobody). History is stored in a SQLite file (`DB_PATH`, default `data/rae.db`). With Docker it lives in the `rae-data` volume, so keep that volume if you want to keep the history. People can delete their own history from the Profile page.
 
 **Development:** run the bot, then `npm run dev:web` (Vite on :5173 proxies to the bot on :3000).
 

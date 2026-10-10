@@ -10,6 +10,7 @@ import { NowPlaying } from './components/NowPlaying.jsx';
 import { usePresence } from './hooks.js';
 import { Home, QueuePage, HistoryPage } from './views/Home.jsx';
 import { Search, Collection } from './views/Search.jsx';
+import { Profile } from './views/Profile.jsx';
 import { Login } from './views/Login.jsx';
 import { NotInCall } from './views/NotInCall.jsx';
 
@@ -76,6 +77,7 @@ function Shell({ me }) {
             <Route path="artist/:id" element={<Collection kind="artist" />} />
             <Route path="queue" element={<QueuePage />} />
             <Route path="history" element={<HistoryPage />} />
+            <Route path="profile" element={<Profile me={me} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

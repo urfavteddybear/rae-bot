@@ -623,3 +623,26 @@ button.pill-link.active { background: hsl(var(--hue) var(--sat) 60% / 0.3); }
 .join-btn:hover:not(:disabled) { background: #232d44; transform: translateY(-1px); }
 .join-btn:active:not(:disabled) { transform: scale(0.96); }
 .join-btn:disabled { opacity: 0.6; }
+
+/* ── Profile ─────────────────────────────────────────────────────────────── */
+.profile-card { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 26px; align-items: center; padding: 24px 28px 0; border-radius: 20px; background: var(--glass); }
+.profile-avatar { width: 128px; height: 128px; border-radius: 50%; object-fit: cover; box-shadow: 0 14px 36px rgba(0, 0, 0, 0.4); }
+.profile-body h1 { font-size: clamp(28px, 3.4vw, 44px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; overflow-wrap: anywhere; }
+.profile-stats { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 18px; padding: 18px 0 22px; border-top: 1px solid var(--line); }
+.pstat { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pstat strong { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+.pstat span { color: var(--text-2); font-size: 12px; }
+.shelf { display: flex; gap: 18px; overflow-x: auto; padding: 4px 4px 10px; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.2) transparent; }
+.shelf-card { flex: none; width: 160px; display: flex; flex-direction: column; gap: 3px; padding: 0; border: 0; background: none; text-align: left; transition: transform 0.3s var(--spring); }
+.shelf-card:hover { transform: translateY(-3px); }
+.shelf-card:active { transform: scale(0.97); }
+.shelf-art { width: 160px; height: 160px; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35); }
+.card-sub.plays { color: var(--text-3); }
+.text-btn { align-self: flex-start; border: 0; background: none; padding: 6px 2px; color: var(--text-3); font-size: 12px; }
+.text-btn:hover { color: #ff8b97; }
+@media (max-width: 760px) {
+  .profile-card { grid-template-columns: minmax(0, 1fr); text-align: left; padding: 20px 18px 0; }
+  .profile-avatar { width: 96px; height: 96px; }
+  .profile-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.row { user-select: none; }

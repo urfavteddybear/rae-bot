@@ -12,6 +12,7 @@ import { clientIp, consume, limit } from './ratelimit.js';
 import { emptyState, queuedIds, serializePage, serializePlayer } from './serialize.js';
 import { getStats, registerStatsListeners } from './stats.js';
 import * as catalog from './catalog.js';
+import { databaseAvailable, getProfile, resetProfile } from '../utils/db.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST = join(__dirname, '..', '..', 'web', 'dist');
@@ -209,6 +210,24 @@ export function startWebServer(client) {
   api.get('/me', limit({ name: 'me', max: 30, windowMs: 60_000, by: 'user', trustHops }), (req, res) => {
     res.json({ user: req.user });
   });
+
+  // Your own play history in the server whose voice channel you are in.
+  const profileGuild = (req) => {
+    if (!databaseAvailable()) throw new ControlError('Profiles are not available on this bot.', 503);
+    const guild = voiceGuildOf(req.user.id);
+    if (!guild) throw new ControlError('Join a voice channel to see your profile.', 409);
+    return guild;
+  };
+
+  api.get('/profile', lookupLimit, wrap(async (req, res) => {
+    const guild = profileGuild(req);
+    res.json({ guild: { id: guild.id, name: guild.name }, ...getProfile(guild.id, req.user.id) });
+  }));
+
+  api.post('/profile/reset', limit({ name: 'profile-reset', max: 5, windowMs: 60_000, by: 'user', trustHops }), wrap(async (req, res) => {
+    resetProfile(profileGuild(req).id, req.user.id);
+    res.json({ ok: true });
+  }));
 
   const guildRoute = (handler) => wrap(async (req, res) => {
     const { guildId } = req.params;

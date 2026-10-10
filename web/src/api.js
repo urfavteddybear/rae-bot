@@ -24,6 +24,8 @@ export const api = {
   lyrics: (t) => request('GET', `/api/lyrics?title=${encodeURIComponent(t.title)}&artist=${encodeURIComponent(t.author ?? '')}&duration=${t.duration ?? 0}`),
   list: (guildId, kind, offset, limit) => request('GET', `/api/guilds/${guildId}/${kind}?offset=${offset}&limit=${limit}`),
   queued: (guildId, ids) => request('GET', `/api/guilds/${guildId}/queued?ids=${ids.map(encodeURIComponent).join(',')}`),
+  profile: () => request('GET', '/api/profile'),
+  resetProfile: () => request('POST', '/api/profile/reset', {}),
   control: (guildId, action, body) => request('POST', `/api/guilds/${guildId}/${action}`, body ?? {}),
   logout: () => request('POST', '/auth/logout', {}),
 };

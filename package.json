@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "start": "node src/index.js",
+    "start": "node --disable-warning=ExperimentalWarning src/index.js",
     "dev": "node --watch src/index.js",
     "deploy": "node src/deploy-commands.js",
     "dev:web": "cd web && npm run dev",
@@ -19,6 +19,6 @@
     "ws": "^8.22.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.13.0"
   }
 }

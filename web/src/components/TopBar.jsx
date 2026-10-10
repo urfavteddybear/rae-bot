@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, House, Search, X, LogOut } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Headphones, House, Search, X, LogOut } from 'lucide-react';
 import { api } from '../api.js';
 import { usePresence } from '../hooks.js';
 import { Segmented } from './Segmented.jsx';
@@ -46,8 +46,11 @@ export function TopBar({ me, guildBase }) {
 
   const path = location.pathname.replace(/\/$/, '');
   const home = guildBase || '/';
-  const navValue = path === guildBase ? 'home' : null;
-  const navItems = [{ id: 'home', label: 'Home', icon: House, to: home }];
+  const navValue = path === guildBase ? 'home' : path === `${guildBase}/profile` ? 'profile' : null;
+  const navItems = [
+    { id: 'home', label: 'Home', icon: House, to: home },
+    { id: 'profile', label: 'Profile', icon: Headphones, to: `${guildBase}/profile` },
+  ];
 
   useEffect(() => setText(urlQuery), [urlQuery]);
 
