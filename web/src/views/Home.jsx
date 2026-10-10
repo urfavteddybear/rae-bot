@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ChevronRight, Disc3, Mic2, X, Headphones } from 'lucide-react';
 import { fmtLong } from '../api.js';
 import { usePlayer, usePosition } from '../player.jsx';
+import { useToast } from '../toast.jsx';
 import { activeLineIndex } from '../components/Lyrics.jsx';
 import { Art, TrackRow } from '../components/TrackRow.jsx';
 import { useList, VirtualRows } from '../lists.jsx';
@@ -186,6 +187,7 @@ export function History({ limit, guildBase }) {
   const { act, state } = usePlayer();
   const can = state.me.canControl;
   const { total, getItem, ensure } = useList('history');
+  const toast = useToast();
   const count = limit ? Math.min(limit, total) : total;
 
   useEffect(() => { if (limit) ensure(0, count); }, [limit, count, ensure, state.historyRev]);
@@ -200,7 +202,8 @@ export function History({ limit, guildBase }) {
         explicit={t.explicit}
         subtitle={sub(t)}
         duration={t.duration}
-        onPlay={can ? () => act('playHistory', { index: i, id: t.id }) : undefined}
+        onAdd={can ? async () => { if (await act('requeueHistory', { index: i, id: t.id })) toast(`Added ${t.title} to the queue`); } : undefined}
+        onPlayNow={can ? () => act('playHistory', { index: i, id: t.id }) : undefined}
       />
     );
   };

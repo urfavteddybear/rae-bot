@@ -52,7 +52,7 @@ function useFetch(loader, deps) {
   return data;
 }
 
-export function TrackList({ tracks, queued, add, canAdd, limit }) {
+export function TrackList({ tracks, queued, add, canAdd, limit, clickToAdd }) {
   return (
     <div className="list">
       {(limit ? tracks.slice(0, limit) : tracks).map((t) => (
@@ -64,7 +64,9 @@ export function TrackList({ tracks, queued, add, canAdd, limit }) {
           badge={queued.has(t.id) ? 'In queue' : null}
           subtitle={[t.author, t.album].filter(Boolean).join(' · ')}
           duration={t.duration}
-          onPlay={canAdd ? () => add(t.url, t.title, { now: true }) : undefined}
+          onPlay={!clickToAdd && canAdd ? () => add(t.url, t.title, { now: true }) : undefined}
+          onAdd={clickToAdd && canAdd ? () => add(t.url, t.title) : undefined}
+          onPlayNow={clickToAdd && canAdd ? () => add(t.url, t.title, { now: true }) : undefined}
           actions={canAdd ? (
             <button className="icon-btn small" onClick={() => add(t.url, t.title)} aria-label={`Add ${t.title} to queue`} title="Add to queue"><ListPlus size={17} /></button>
           ) : null}
@@ -142,7 +144,7 @@ export function Search({ guildBase }) {
                   <h2 className="section-title">Songs</h2>
                   <button className="see-all" onClick={() => setTab('songs')}>See all {value.tracks.length}<ChevronRight size={14} /></button>
                 </div>
-                <TrackList tracks={value.tracks} limit={5} {...adder} />
+                <TrackList tracks={value.tracks} limit={5} clickToAdd {...adder} />
               </section>
             ) : null}
           </div>
@@ -150,7 +152,7 @@ export function Search({ guildBase }) {
           {value.artists.length > 1 ? <section><h2 className="section-title">Artists</h2><ArtistGrid artists={value.artists.slice(1, 7)} guildBase={guildBase} /></section> : null}
         </>
       ) : null}
-      {value && tab === 'songs' ? <TrackList tracks={value.tracks} {...adder} /> : null}
+      {value && tab === 'songs' ? <TrackList tracks={value.tracks} clickToAdd {...adder} /> : null}
       {value && tab === 'albums' ? <AlbumGrid albums={value.albums} guildBase={guildBase} /> : null}
       {value && tab === 'artists' ? <ArtistGrid artists={value.artists} guildBase={guildBase} /> : null}
       </div>

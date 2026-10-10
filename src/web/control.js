@@ -66,6 +66,11 @@ function requireExisting(client, guild, userId) {
   return player;
 }
 
+/** Who a song is credited to: the person who clicked, so profile stats and "Queued by" are right. */
+function requesterOf(guild, user) {
+  return guild.members.cache.get(user.id)?.user ?? { id: user.id, username: user.name, displayAvatarURL: () => user.avatar };
+}
+
 /** Bring the bot into the user's voice channel (the same rules as /join). */
 async function joinUser(client, guild, userId) {
   const vc = userVoiceChannel(guild, userId);
@@ -188,10 +193,18 @@ export async function perform(client, guild, user, action, body = {}) {
       queue.tracks.splice(to, 0, track);
       break;
     }
+    case 'requeueHistory': {
+      const idx = int(body.index, 0, queue.previous.length - 1);
+      expectTrack(queue.previous, idx, body.id);
+      if (queue.tracks.length >= MAX_QUEUE_SIZE) throw new ControlError(`The queue is full (${MAX_QUEUE_SIZE} tracks).`);
+      await queue.add({ ...queue.previous[idx], requester: requesterOf(guild, user) });
+      if (!queue.current) await player.play();
+      break;
+    }
     case 'playHistory': {
       const idx = int(body.index, 0, queue.previous.length - 1);
       expectTrack(queue.previous, idx, body.id);
-      const track = queue.previous[idx];
+      const track = { ...queue.previous[idx], requester: requesterOf(guild, user) };
       queue.splice(0, 0, track);
       if (queue.current) await player.skip();
       else await player.play();
