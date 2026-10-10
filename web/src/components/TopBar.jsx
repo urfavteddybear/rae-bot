@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, House, Server, Search, X, LogOut, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, House, Search, X, LogOut } from 'lucide-react';
 import { api } from '../api.js';
 import { usePresence } from '../hooks.js';
 import { Segmented } from './Segmented.jsx';
 
-function AccountMenu({ me, guildId }) {
+export function AccountMenu({ me }) {
   const [open, setOpen] = useState(false);
   const { mounted, exiting } = usePresence(open, 180);
-  const navigate = useNavigate();
   const wrap = useRef(null);
 
   useEffect(() => {
@@ -26,16 +25,6 @@ function AccountMenu({ me, guildId }) {
       {mounted ? (
         <div className={`popover menu ${exiting ? 'exit' : ''}`}>
           <div className="menu-user"><img src={me.user.avatar} alt="" /><strong>{me.user.name}</strong></div>
-          <div className="menu-label">Servers</div>
-          <div className="menu-list">
-            {me.guilds.map((g) => (
-              <button key={g.id} className="menu-item" onClick={() => { setOpen(false); navigate(`/g/${g.id}`); }}>
-                {g.icon ? <img src={g.icon} alt="" /> : <span className="guild-fallback">{g.name[0]}</span>}
-                <span>{g.name}</span>
-                {g.id === guildId ? <Check size={15} /> : null}
-              </button>
-            ))}
-          </div>
           <button
             className="menu-item danger"
             onClick={async () => { await api.logout(); location.assign('/'); }}
@@ -48,7 +37,7 @@ function AccountMenu({ me, guildId }) {
   );
 }
 
-export function TopBar({ me, guildId, guildBase }) {
+export function TopBar({ me, guildBase }) {
   const navigate = useNavigate();
   const location = useLocation();
   const urlQuery = location.pathname.endsWith('/search') ? new URLSearchParams(location.search).get('q') ?? '' : '';
@@ -56,11 +45,9 @@ export function TopBar({ me, guildId, guildBase }) {
   const input = useRef(null);
 
   const path = location.pathname.replace(/\/$/, '');
-  const navValue = path === guildBase ? 'home' : path === '/servers' ? 'servers' : null;
-  const navItems = [
-    { id: 'home', label: 'Home', icon: House, to: guildBase },
-    { id: 'servers', label: 'Servers', icon: Server, to: '/servers' },
-  ];
+  const home = guildBase || '/';
+  const navValue = path === guildBase ? 'home' : null;
+  const navItems = [{ id: 'home', label: 'Home', icon: House, to: home }];
 
   useEffect(() => setText(urlQuery), [urlQuery]);
 
@@ -102,10 +89,10 @@ export function TopBar({ me, guildId, guildBase }) {
           placeholder="Search songs, albums, artists   ( / )"
           aria-label="Search"
         />
-        {text ? <button type="button" className="icon-btn small" onClick={() => { setText(''); navigate(guildBase); }} aria-label="Clear search"><X size={15} /></button> : null}
+        {text ? <button type="button" className="icon-btn small" onClick={() => { setText(''); navigate(home); }} aria-label="Clear search"><X size={15} /></button> : null}
       </form>
 
-      <div className="topbar-right"><AccountMenu me={me} guildId={guildId} /></div>
+      <div className="topbar-right"><AccountMenu me={me} /></div>
     </header>
   );
 }

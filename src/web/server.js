@@ -93,6 +93,14 @@ export function startWebServer(client) {
     return entry;
   }
 
+  /** The server whose voice channel the user is currently in, or null. Discord allows only one at a time. */
+  function voiceGuildOf(userId) {
+    for (const g of client.guilds.cache.values()) {
+      if (g.voiceStates.cache.get(userId)?.channelId) return g;
+    }
+    return null;
+  }
+
   /**
    * Playback info (what's playing, queue, history, who's listening) is only for people in the bot's
    * voice channel. With no active player there is nothing to hide.
@@ -198,20 +206,9 @@ export function startWebServer(client) {
 
   const lookupLimit = limit({ name: 'lookup', max: 40, windowMs: 60_000, by: 'user', trustHops });
 
-  api.get('/me', limit({ name: 'me', max: 20, windowMs: 60_000, by: 'user', trustHops }), wrap(async (req, res) => {
-    const guilds = await Promise.all([...client.guilds.cache.values()].map(async (g) => {
-      if (!(await isMember(g.id, req.user.id))) return null;
-      const player = client.lavalink.getPlayer(g.id);
-      return {
-        id: g.id,
-        name: g.name,
-        icon: g.iconURL({ size: 128, extension: 'png' }),
-        inVoice: userVoiceChannel(g, req.user.id) !== null,
-        nowPlaying: player?.queue.current && canSee(g.id, req.user.id) ? { title: player.queue.current.info.title, artwork: player.queue.current.info.artworkUrl ?? null } : null,
-      };
-    }));
-    res.json({ user: req.user, guilds: guilds.filter(Boolean) });
-  }));
+  api.get('/me', limit({ name: 'me', max: 30, windowMs: 60_000, by: 'user', trustHops }), (req, res) => {
+    res.json({ user: req.user });
+  });
 
   const guildRoute = (handler) => wrap(async (req, res) => {
     const { guildId } = req.params;
@@ -254,6 +251,7 @@ export function startWebServer(client) {
     const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
     // Adding hits Lavalink and can load whole albums, so it gets a tighter budget.
     if (action === 'add' && !consume(`add:${req.user.id}`, 15, 60_000).ok) throw new ControlError('You are adding songs too fast. Slow down a bit.', 429);
+    if (action === 'join' && !consume(`join:${req.user.id}`, 6, 60_000).ok) throw new ControlError('Slow down a bit.', 429);
     await perform(client, guild, req.user, action, body);
     res.json({ ok: true });
     tick(true);
@@ -327,7 +325,7 @@ export function startWebServer(client) {
   // Clients never send anything meaningful, so keep frames tiny.
   const wss = new WebSocketServer({ noServer: true, maxPayload: 256 });
 
-  /** @type {Set<{ ws: import('ws').WebSocket, guildId: string, userId: string, lastKey: string, lastSent: number }>} */
+  /** @type {Set<{ ws: import('ws').WebSocket, userId: string, lastKey: string, lastSent: number }>} */
   const subs = new Set();
   const socketsFor = (userId) => { let n = 0; for (const s of subs) if (s.userId === userId) n += 1; return n; };
 
@@ -343,15 +341,13 @@ export function startWebServer(client) {
 
       const url = new URL(req.url, baseUrl);
       const user = auth.getUser(req);
-      const guildId = url.searchParams.get('guild');
       if (url.pathname !== '/ws' || req.headers.origin !== baseUrl) return reject(socket, 403, 'Forbidden');
       if (!user) return reject(socket, 401, 'Unauthorized');
-      if (!guildId || !SNOWFLAKE.test(guildId) || !(await isMember(guildId, user.id))) return reject(socket, 403, 'Forbidden');
       if (!consume(`ws:user:${user.id}`, 30, 60_000).ok) return reject(socket, 429, 'Too Many Requests');
       if (socketsFor(user.id) >= MAX_SOCKETS_PER_USER) return reject(socket, 429, 'Too Many Requests');
 
       wss.handleUpgrade(req, socket, head, (ws) => {
-        const sub = { ws, guildId, userId: user.id, lastKey: '', lastSent: 0 };
+        const sub = { ws, userId: user.id, lastKey: '', lastSent: 0 };
         subs.add(sub);
         ws.isAlive = true;
         ws.on('close', () => subs.delete(sub));
@@ -371,10 +367,21 @@ export function startWebServer(client) {
     for (const sub of subs) {
       if (sub.ws.readyState !== 1) continue;
       if (sub.ws.bufferedAmount > 512 * 1024) { sub.ws.terminate(); continue; }
-      const c = guildCore(sub.guildId, cache);
-      if (!c) { sub.ws.close(1001, 'Server unavailable'); continue; }
-      const me = JSON.stringify(meFor(sub.guildId, sub.userId));
-      const visible = canSee(sub.guildId, sub.userId);
+
+      // The dashboard follows the voice channel the user is in; no voice channel, nothing to show.
+      const guild = voiceGuildOf(sub.userId);
+      if (!guild) {
+        if (force || sub.lastKey !== 'idle' || now - sub.lastSent >= RESYNC_MS) {
+          sub.lastKey = 'idle';
+          sub.lastSent = now;
+          sub.ws.send('{"type":"idle"}');
+        }
+        continue;
+      }
+      const guildId = guild.id;
+      const c = guildCore(guildId, cache);
+      const me = JSON.stringify(meFor(guildId, sub.userId));
+      const visible = canSee(guildId, sub.userId);
       const json = visible ? c.json : c.hiddenJson;
       const position = visible ? c.position : 0;
       const key = json + me;

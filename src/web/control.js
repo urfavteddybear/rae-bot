@@ -65,7 +65,33 @@ function requireExisting(client, guild, userId) {
   return player;
 }
 
+/** Bring the bot into the user's voice channel (the same rules as /join). */
+async function joinUser(client, guild, userId) {
+  const vc = userVoiceChannel(guild, userId);
+  if (!vc) throw new ControlError('Join a voice channel first.', 403);
+  let player = client.lavalink.getPlayer(guild.id);
+
+  if (player && player.voiceChannelId !== vc.id) {
+    const current = guild.channels.cache.get(player.voiceChannelId);
+    const listeners = current?.members?.filter((m) => !m.user.bot).size ?? 0;
+    if (listeners > 0) throw new ControlError("I'm already playing for people in another channel.", 403);
+  }
+  if (!vc.permissionsFor(client.user).has(['Connect', 'Speak'])) {
+    throw new ControlError("I don't have permission to join your voice channel.", 403);
+  }
+
+  if (!player) {
+    player = await client.lavalink.createPlayer({ guildId: guild.id, voiceChannelId: vc.id, textChannelId: vc.id, selfDeaf: true, volume: 100 });
+  } else if (player.voiceChannelId !== vc.id) {
+    player.voiceChannelId = vc.id;
+    player.options.voiceChannelId = vc.id;
+  }
+  if (!player.connected) await player.connect();
+}
+
 export async function perform(client, guild, user, action, body = {}) {
+  if (action === 'join') return joinUser(client, guild, user.id);
+
   if (action === 'add') {
     const url = String(body.url ?? '');
     if (!DEEZER_URL.test(url)) throw new ControlError('Unsupported link.');

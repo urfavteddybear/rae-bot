@@ -595,3 +595,31 @@ button.pill-link.active { background: hsl(var(--hue) var(--sat) 60% / 0.3); }
 @keyframes lyrics-in { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: none; } }
 @keyframes lyrics-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(36px); } }
 @media (max-width: 1100px) { .lyrics-inner { width: 100%; } }
+
+/* ── Nothing to control: not in voice / bot not in a call ────────────────── */
+.empty-call {
+  position: relative;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  background: radial-gradient(60% 50% at 50% 0%, rgba(45, 80, 140, 0.2), transparent 70%), #050b15;
+}
+.empty-top { position: absolute; top: 14px; right: 18px; z-index: 2; display: flex; align-items: center; gap: 14px; }
+.empty-body { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; max-width: 360px; padding: 24px; }
+.empty-icon { width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.07); display: grid; place-items: center; color: var(--text-2); margin-bottom: 6px; }
+.empty-body h1 { font-size: 17px; font-weight: 700; }
+.empty-body p { color: var(--text-2); font-size: 14px; line-height: 1.45; }
+.join-btn {
+  margin-top: 12px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #1a2233;
+  color: #fff;
+  font-weight: 700;
+  transition: transform 0.3s var(--spring), background 0.2s;
+}
+.join-btn:hover:not(:disabled) { background: #232d44; transform: translateY(-1px); }
+.join-btn:active:not(:disabled) { transform: scale(0.96); }
+.join-btn:disabled { opacity: 0.6; }

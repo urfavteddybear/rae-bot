@@ -6,12 +6,14 @@ const PlayerContext = createContext(null);
 export const usePlayer = () => useContext(PlayerContext);
 
 /**
- * Keeps a WebSocket open to the bot for one guild and exposes the live state.
- * The bot sends the position only on state changes, so the clock runs locally in between.
+ * Keeps a WebSocket open to the bot. The bot follows the voice channel you are in: it sends that
+ * server's state, or `idle` when you aren't in any voice channel. The position is only sent on
+ * state changes, so the clock runs locally in between.
  */
-export function PlayerProvider({ guildId, children }) {
+export function PlayerProvider({ children }) {
   const toast = useToast();
   const [state, setState] = useState(null);
+  const [idle, setIdle] = useState(false);
   const [status, setStatus] = useState('connecting');
   const anchor = useRef({ position: 0, at: Date.now(), running: false });
 
@@ -19,21 +21,25 @@ export function PlayerProvider({ guildId, children }) {
     let ws;
     let retry;
     let closed = false;
-    setState(null);
-    setStatus('connecting');
 
     const connect = () => {
       const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-      ws = new WebSocket(`${proto}://${location.host}/ws?guild=${guildId}`);
+      ws = new WebSocket(`${proto}://${location.host}/ws`);
       ws.onopen = () => setStatus('live');
       ws.onmessage = (e) => {
         const msg = JSON.parse(e.data);
+        if (msg.type === 'idle') {
+          setIdle(true);
+          setState(null);
+          return;
+        }
         if (msg.type !== 'state') return;
         anchor.current = {
           position: msg.position,
           at: Date.now(),
           running: msg.state.playing && !msg.state.paused && !!msg.state.current,
         };
+        setIdle(false);
         setState(msg.state);
       };
       ws.onclose = () => {
@@ -48,7 +54,9 @@ export function PlayerProvider({ guildId, children }) {
       clearTimeout(retry);
       ws?.close();
     };
-  }, [guildId]);
+  }, []);
+
+  const guildId = state?.guildId ?? null;
 
   const getPosition = useCallback(() => {
     const a = anchor.current;
@@ -56,6 +64,7 @@ export function PlayerProvider({ guildId, children }) {
   }, []);
 
   const act = useCallback(async (action, body) => {
+    if (!guildId) return false;
     try {
       await api.control(guildId, action, body);
       return true;
@@ -70,7 +79,7 @@ export function PlayerProvider({ guildId, children }) {
     return act('seek', { position: Math.round(position) });
   }, [act]);
 
-  const value = useMemo(() => ({ guildId, state, status, getPosition, act, seek }), [guildId, state, status, getPosition, act, seek]);
+  const value = useMemo(() => ({ guildId, state, idle, status, getPosition, act, seek }), [guildId, state, idle, status, getPosition, act, seek]);
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;
 }
 
