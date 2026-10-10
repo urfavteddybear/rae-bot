@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { requireVoice, replyError, replySuccess } from '../../utils/embeds.js';
+import { requireVoice, requireJoinable, replyError, replySuccess } from '../../utils/embeds.js';
 
 export default {
   data: new SlashCommandBuilder()
@@ -14,6 +14,8 @@ export default {
     if (player?.voiceChannelId === vc.channel.id) {
       return replyError(interaction, 'I am already in your voice channel.');
     }
+
+    if (!(await requireJoinable(interaction, player, vc.channel))) return;
 
     if (!player) {
       player = await client.lavalink.createPlayer({

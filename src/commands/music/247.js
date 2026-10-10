@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
 import { replyError, embed } from '../../utils/embeds.js';
 import { setStay247, getStay247 } from '../../utils/stay247.js';
 
@@ -8,11 +8,19 @@ export default {
     .setDescription('Toggle 24/7 mode — bot stays in voice channel indefinitely'),
 
   async execute(interaction, client) {
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
+      return replyError(interaction, 'You need the **Manage Server** permission to toggle 24/7 mode.');
+    }
+
     let player = client.lavalink.getPlayer(interaction.guildId);
     const memberVoice = interaction.member?.voice?.channel;
 
     if (!player && !memberVoice) {
       return replyError(interaction, 'You or the bot must be in a voice channel to toggle 24/7 mode.');
+    }
+
+    if (player && memberVoice?.id !== player.voiceChannelId) {
+      return replyError(interaction, `Join <#${player.voiceChannelId}> to change 24/7 mode.`);
     }
 
     const current = getStay247(interaction.guildId);

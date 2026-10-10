@@ -62,20 +62,40 @@ export async function requireVoice(interaction) {
  * Ensure a player exists and is active.
  * Returns the player or sends an error reply and returns null.
  */
-export async function requirePlayer(interaction) {
+export async function requirePlayer(interaction, { sameVoice = true } = {}) {
   const player = interaction.client.lavalink.getPlayer(interaction.guildId);
   if (!player) {
     await replyError(interaction, 'There is nothing playing right now.');
+    return null;
+  }
+  // Anything that changes playback must come from someone listening in the bot's channel.
+  if (sameVoice && interaction.member?.voice?.channelId !== player.voiceChannelId) {
+    await replyError(interaction, `Join <#${player.voiceChannelId}> to control the player.`);
     return null;
   }
   return player;
 }
 
 /**
+ * Refuse to pull the bot away from a channel that still has listeners.
+ * Returns true when it is fine to (re)join `channel`.
+ */
+export async function requireJoinable(interaction, player, channel) {
+  if (!player || player.voiceChannelId === channel.id) return true;
+  const current = interaction.guild.channels.cache.get(player.voiceChannelId);
+  const listeners = current?.members?.filter((m) => !m.user.bot).size ?? 0;
+  if (listeners > 0) {
+    await replyError(interaction, `I'm already playing for people in <#${player.voiceChannelId}>.`);
+    return false;
+  }
+  return true;
+}
+
+/**
  * Ensure a player exists and has a current track.
  */
-export async function requirePlaying(interaction) {
-  const player = await requirePlayer(interaction);
+export async function requirePlaying(interaction, options) {
+  const player = await requirePlayer(interaction, options);
   if (!player) return null;
   if (!player.queue.current) {
     await replyError(interaction, 'There is nothing playing right now.');

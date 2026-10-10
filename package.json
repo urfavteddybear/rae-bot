@@ -5,14 +5,18 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "start": "node --max-old-space-size=128 src/index.js",
+    "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "deploy": "node src/deploy-commands.js"
+    "deploy": "node src/deploy-commands.js",
+    "dev:web": "npm --prefix web run dev",
+    "build:web": "npm --prefix web install && npm --prefix web run build"
   },
   "dependencies": {
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
-    "lavalink-client": "^2.4.2"
+    "express": "^4.22.3",
+    "lavalink-client": "^2.4.2",
+    "ws": "^8.22.0"
   },
   "engines": {
     "node": ">=18.0.0"

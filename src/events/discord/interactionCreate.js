@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { log } from '../../utils/logger.js';
 import { replyError } from '../../utils/embeds.js';
 
@@ -11,6 +12,10 @@ export default {
 
     const command = client.commands.get(interaction.commandName);
     if (!command) return;
+
+    if (!interaction.inGuild()) {
+      return interaction.reply({ content: 'Commands only work inside a server.', flags: MessageFlags.Ephemeral }).catch(() => {});
+    }
 
     // ── Per-command cooldown ────────────────────────────────────────────
     if (!client.cooldowns.has(command.data.name)) {
@@ -35,9 +40,10 @@ export default {
     try {
       await command.execute(interaction, client);
     } catch (err) {
-      log.error(`Command ${command.data.name} threw: ${err.message}`);
+      // Full details go to the log only; internal error text can contain hosts or tokens.
+      log.error(`Command ${command.data.name} threw: ${err.stack ?? err.message}`);
 
-      let message = err.message || 'An unexpected error occurred. Please try again.';
+      let message = 'Something went wrong. Please try again.';
       if (err.message?.includes("Can't skip more than the queue size")) {
         message = 'There are no more tracks in the queue to skip to.';
       }

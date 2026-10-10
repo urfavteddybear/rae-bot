@@ -1,5 +1,6 @@
 import { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
-import { requireVoice, replyError, embed, truncate, msToTime } from '../../utils/embeds.js';
+import { requireVoice, requireJoinable, replyError, embed, truncate, msToTime } from '../../utils/embeds.js';
+import { MAX_QUEUE_SIZE, MAX_QUERY_LENGTH } from '../../utils/limits.js';
 
 const SEARCH_ENGINES = {
   deezer:      'dzsearch',
@@ -35,11 +36,15 @@ export default {
     if (!vc) return;
 
     const rawQuery = interaction.options.getString('query', true).trim();
+    if (rawQuery.length > MAX_QUERY_LENGTH) {
+      return replyError(interaction, `Queries are limited to ${MAX_QUERY_LENGTH} characters.`);
+    }
     const sourceKey = interaction.options.getString('source') ?? null;
     const prefix = sourceKey ? SEARCH_ENGINES[sourceKey] : (process.env.DEFAULT_SEARCH_ENGINE ?? 'dzsearch');
     const query = `${prefix}:${rawQuery}`;
 
     let player = client.lavalink.getPlayer(interaction.guildId);
+    if (!(await requireJoinable(interaction, player, vc.channel))) return;
     if (!player) {
       player = await client.lavalink.createPlayer({
         guildId:        interaction.guildId,
@@ -90,6 +95,9 @@ export default {
     collector.on('collect', async (btn) => {
       const idx = parseInt(btn.customId.split('_')[1]);
       const track = results[idx];
+      if (player.queue.tracks.length >= MAX_QUEUE_SIZE) {
+        return btn.update({ embeds: [embed(`The queue is full (${MAX_QUEUE_SIZE} tracks).`)], components: [] });
+      }
       await player.queue.add(track);
       if (!player.playing && !player.paused) await player.play();
       await btn.update({

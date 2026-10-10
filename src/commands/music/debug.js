@@ -52,6 +52,9 @@ export default {
     if (!botVoice || !player || !player.connected) {
       return replyError(interaction, 'I must be connected to a voice channel to show debug info.');
     }
+    if (interaction.member?.voice?.channelId !== botVoice.id) {
+      return replyError(interaction, `Join <#${botVoice.id}> to see debug info.`);
+    }
 
     await interaction.deferReply();
 

@@ -89,6 +89,34 @@ npm start
 
 ---
 
+## 🖥️ Web Dashboard
+
+An Apple Music-style web player for your servers: now playing with live progress, synced lyrics, queue and history (drag to reorder), and search for songs, albums and artists. Everything is live over WebSocket and works alongside the slash commands.
+
+**Setup**
+
+1. In the [Discord Developer Portal](https://discord.com/developers/applications) > your app > **OAuth2**, copy the **Client Secret** and add the redirect `<DASHBOARD_URL>/auth/callback` (e.g. `http://localhost:3000/auth/callback`).
+2. Set `CLIENT_SECRET` and `DASHBOARD_URL` in `.env` (see `.env.example`). Without `CLIENT_SECRET` the dashboard stays off.
+3. Docker: `docker compose up -d --build` (the image builds the frontend). Open `http://localhost:3000`.
+   Without Docker: `npm run build:web` then `npm start`.
+
+**Development:** run the bot, then `npm run dev:web` (Vite on :5173 proxies to the bot on :3000).
+
+**Access rules:** anyone in a server the bot is in can view it. To control playback you must be in the same voice channel as the bot. If the bot isn't connected, adding a song from the dashboard joins your voice channel. Search and album/artist data comes from Deezer's public API, so the Deezer source must be enabled in Lavalink (it is by default). Lyrics come from lrclib.net. For HTTPS, put a reverse proxy in front and set `DASHBOARD_URL` to the public `https://` address.
+
+---
+
+## 🔒 Security
+
+- **Voice-channel gating:** slash commands that change playback (`/skip`, `/clear`, `/disconnect`, ...) only work for people in the bot's voice channel. The bot won't be pulled out of a channel that still has listeners. `/247` needs **Manage Server**.
+- **Link allow-list:** `/play` only accepts links from known music services (extend with `ALLOWED_URL_HOSTS`), so Lavalink can't be pointed at internal addresses.
+- **Limits:** queries are capped at 300 characters. Queues are unlimited unless you set `QUEUE_LIMIT`.
+- **Dashboard:** per-IP and per-user rate limits, CSRF protection (origin check + JSON-only), strict CSP and security headers, signed `HttpOnly` cookies (`__Host-` prefixed over HTTPS), session revocation on logout, WebSocket origin/connection limits, and a size-capped, raster-only image proxy.
+- **Behind a reverse proxy:** set `TRUST_PROXY=1` (number of proxies) so rate limits see real visitor IPs, and serve over HTTPS.
+- **Lavalink:** the compose setup doesn't publish Lavalink's port. If you expose it elsewhere, change the default `youshallnotpass` password in both `lavalink/application.yml` and `LAVALINK_NODES`, or keep it on a private network.
+
+---
+
 ## 🎵 Supported Sources
 
 | Source      | Search prefix | Requires                    |
@@ -191,6 +219,14 @@ The `bot` service depends on `lavalink` with a health check — it will wait up 
 | `INVITE_URL` | ❌ | auto-generated | Bot invite URL |
 | `SUPPORT_SERVER` | ❌ | — | Support server invite |
 | `ACCENT_COLOR` | ❌ | `5865F2` | Embed accent colour (hex) |
+| `CLIENT_SECRET` | ❌ | — | Enables the web dashboard (Discord OAuth2 secret) |
+| `DASHBOARD_URL` | ❌ | `http://localhost:3000` | Public dashboard URL (used for the OAuth redirect) |
+| `WEB_PORT` | ❌ | `3000` | Dashboard port |
+| `SESSION_SECRET` | ❌ | hash of `BOT_TOKEN` | Key for signing login cookies |
+| `TRUST_PROXY` | ❌ | `0` | Number of reverse proxies in front of the dashboard |
+| `QUEUE_LIMIT` | ❌ | unlimited | Max tracks per queue |
+| `ALLOWED_URL_HOSTS` | ❌ | — | Extra hosts `/play` may load links from |
+| `OWNER_IDS` | ❌ | — | User IDs that can see Lavalink addresses in `/nodes` |
 | `GUILD_ID` | ❌ | — | If set, deploy commands to this guild only (faster for testing) |
 
 ---

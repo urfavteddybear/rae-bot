@@ -1,4 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { OWNER_IDS } from '../../utils/limits.js';
 
 export default {
   data: new SlashCommandBuilder()
@@ -18,6 +19,7 @@ export default {
       .setColor(parseInt(process.env.ACCENT_COLOR ?? '5865F2', 16))
       .setTitle('Lavalink Nodes');
 
+    const isOwner = OWNER_IDS.has(interaction.user.id);
     for (const node of nodes) {
       const stats = node.stats;
       const players = stats?.players ?? 0;
@@ -31,7 +33,7 @@ export default {
       const ping = node.ping ?? -1;
 
       e.addFields({
-        name: `${node.id} — ${node.options.host}:${node.options.port}`,
+        name: isOwner ? `${node.id} — ${node.options.host}:${node.options.port}` : node.id,
         value: [
           `**Status:** ${node.connected ? 'Connected' : 'Disconnected'}`,
           `**Ping:** ${ping >= 0 ? `${ping}ms` : 'N/A'}`,

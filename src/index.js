@@ -5,6 +5,7 @@ import { loadCommands } from './handlers/commandHandler.js';
 import { loadEvents } from './handlers/eventHandler.js';
 import { getStay247 } from './utils/stay247.js';
 import { log } from './utils/logger.js';
+import { startWebServer } from './web/server.js';
 
 // ── Validate required env vars ─────────────────────────────────────────────
 const required = ['BOT_TOKEN', 'CLIENT_ID', 'LAVALINK_NODES'];
@@ -105,5 +106,8 @@ await loadEvents(client);
 
 // ── Login ──────────────────────────────────────────────────────────────────
 await client.login(process.env.BOT_TOKEN);
+
+// ── Dashboard ──────────────────────────────────────────────────────────────
+startWebServer(client);
 
 export { client };
