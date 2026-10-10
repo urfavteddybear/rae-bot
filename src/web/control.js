@@ -1,5 +1,6 @@
 import { MAX_QUEUE_SIZE } from '../utils/limits.js';
 import { resetAutoplay, setAutoplay } from '../utils/autoplay.js';
+import { findSong } from './catalog.js';
 
 const DEEZER_URL = /^https:\/\/(www\.)?deezer\.com\/(?:[a-z]{2}\/)?(track|album|artist|playlist)\/\d{1,15}$/;
 
@@ -97,6 +98,17 @@ async function joinUser(client, guild, userId) {
 
 export async function perform(client, guild, user, action, body = {}) {
   if (action === 'join') return joinUser(client, guild, user.id);
+
+  // A song from the profile shelves: a Deezer link if we kept one, otherwise found by title and artist.
+  if (action === 'addSong') {
+    const title = String(body.title ?? '').slice(0, 200).trim();
+    const author = String(body.author ?? '').slice(0, 200).trim();
+    if (!title) throw new ControlError('Missing song');
+    const stored = typeof body.uri === 'string' && body.uri.length < 200 && /\/track\/\d+$/.test(body.uri) && DEEZER_URL.test(body.uri) ? body.uri : null;
+    const url = stored ?? await findSong(title, author).catch(() => null);
+    if (!url) throw new ControlError("Couldn't find that song to play.", 404);
+    return perform(client, guild, user, 'add', { url, now: !!body.now });
+  }
 
   if (action === 'add') {
     const url = String(body.url ?? '');

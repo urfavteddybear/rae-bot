@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * Keeps something mounted for `ms` after `open` turns false, so it can play an exit animation.
@@ -14,4 +14,25 @@ export function usePresence(open, ms) {
   }, [open, ms]);
 
   return { mounted: open || mounted, exiting: !open && mounted };
+}
+
+/**
+ * Single click and double-click on the same thing. A double-click is two clicks, so the single-click
+ * action waits briefly to see whether a second click follows and is skipped if it does.
+ */
+export function useSingleDoubleClick(onSingle, onDouble, ms = 280) {
+  const timer = useRef(null);
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  return {
+    onClick: () => {
+      if (!onSingle) return;
+      clearTimeout(timer.current);
+      timer.current = setTimeout(onSingle, ms);
+    },
+    onDoubleClick: () => {
+      clearTimeout(timer.current);
+      onDouble?.();
+    },
+  };
 }

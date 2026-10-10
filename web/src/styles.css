@@ -646,3 +646,5 @@ button.pill-link.active { background: hsl(var(--hue) var(--sat) 60% / 0.3); }
   .profile-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 .row { user-select: none; }
+.shelf-card:disabled { opacity: 0.55; cursor: default; }
+.shelf-card:disabled:hover { transform: none; }

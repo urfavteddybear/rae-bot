@@ -111,7 +111,7 @@ An Apple Music-style web player for your servers: now playing with live progress
 3. Docker: `docker compose up -d --build` (the image builds the frontend). Open `http://localhost:3000`.
    Without Docker: `npm run build:web` then `npm start`.
 
-**Profile page:** each person gets a Profile tab with their plays, different songs, first played, most repeated songs and recently played songs in that server. A play is counted when a song starts, for the person who queued it (autoplay songs count for nobody). History is stored in a SQLite file (`DB_PATH`, default `data/rae.db`). With Docker it's the `./data` folder on the host, so back that folder up if you want to keep the history (see the data folder permissions in Quick Start). People can delete their own history from the Profile page.
+**Profile page:** each person gets a Profile tab with their plays, different songs, first played, most repeated songs and recently played songs. It belongs to the Discord account, so it's the same in every server the bot is in. A play is counted when a song starts, for the person who queued it (autoplay songs count for nobody). History is stored in a SQLite file (`DB_PATH`, default `data/rae.db`). With Docker it's the `./data` folder on the host, so back that folder up if you want to keep the history (see the data folder permissions in Quick Start). People can delete their own history from the Profile page.
 
 **Development:** run the bot, then `npm run dev:web` (Vite on :5173 proxies to the bot on :3000).
 

@@ -4,6 +4,7 @@ import { ChevronRight, Disc3, Mic2, X, Headphones } from 'lucide-react';
 import { fmtLong } from '../api.js';
 import { usePlayer, usePosition } from '../player.jsx';
 import { useToast } from '../toast.jsx';
+import { Shelf, useProfile } from '../components/Shelf.jsx';
 import { activeLineIndex } from '../components/Lyrics.jsx';
 import { Art, TrackRow } from '../components/TrackRow.jsx';
 import { useList, VirtualRows } from '../lists.jsx';
@@ -245,7 +246,8 @@ export function RestrictedNotice() {
 
 export function Home({ lyrics, onToggleLyrics, guildBase }) {
   const { state } = usePlayer();
-  if (state.restricted) return <div className="page"><RestrictedNotice /></div>;
+  // A new song being recorded refreshes the shelf, so it stays current while you listen.
+  const { profile } = useProfile(state.current?.id);
   const hasQueue = state.queueTotal > 0;
   const two = hasQueue && state.historyTotal > 0;
   const voiceHint = useMemo(() => {
@@ -253,6 +255,9 @@ export function Home({ lyrics, onToggleLyrics, guildBase }) {
     if (!state.me.voiceChannelId) return 'Join a voice channel in Discord to control playback.';
     return `Join ${state.voiceChannelName ?? 'the bot’s voice channel'} to control playback.`;
   }, [state]);
+
+  // Hooks above must always run, so this early return has to come after them.
+  if (state.restricted) return <div className="page"><RestrictedNotice /></div>;
 
   return (
     <div className="page">
@@ -263,6 +268,7 @@ export function Home({ lyrics, onToggleLyrics, guildBase }) {
         <UpNext limit={5} guildBase={guildBase} />
         {state.historyTotal > 0 || !two ? <History limit={5} guildBase={guildBase} /> : null}
       </div>
+      <Shelf title="Played lately" items={profile?.lately} />
     </div>
   );
 }

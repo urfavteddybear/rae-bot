@@ -211,21 +211,19 @@ export function startWebServer(client) {
     res.json({ user: req.user });
   });
 
-  // Your own play history in the server whose voice channel you are in.
-  const profileGuild = (req) => {
+  // Your own play history. It belongs to your Discord account, so it is the same in every server.
+  const requireDatabase = () => {
     if (!databaseAvailable()) throw new ControlError('Profiles are not available on this bot.', 503);
-    const guild = voiceGuildOf(req.user.id);
-    if (!guild) throw new ControlError('Join a voice channel to see your profile.', 409);
-    return guild;
   };
 
   api.get('/profile', lookupLimit, wrap(async (req, res) => {
-    const guild = profileGuild(req);
-    res.json({ guild: { id: guild.id, name: guild.name }, ...getProfile(guild.id, req.user.id) });
+    requireDatabase();
+    res.json(getProfile(req.user.id));
   }));
 
   api.post('/profile/reset', limit({ name: 'profile-reset', max: 5, windowMs: 60_000, by: 'user', trustHops }), wrap(async (req, res) => {
-    resetProfile(profileGuild(req).id, req.user.id);
+    requireDatabase();
+    resetProfile(req.user.id);
     res.json({ ok: true });
   }));
 
@@ -269,7 +267,7 @@ export function startWebServer(client) {
     const { action } = req.params;
     const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
     // Adding hits Lavalink and can load whole albums, so it gets a tighter budget.
-    if (action === 'add' && !consume(`add:${req.user.id}`, 15, 60_000).ok) throw new ControlError('You are adding songs too fast. Slow down a bit.', 429);
+    if ((action === 'add' || action === 'addSong') && !consume(`add:${req.user.id}`, 15, 60_000).ok) throw new ControlError('You are adding songs too fast. Slow down a bit.', 429);
     if (action === 'join' && !consume(`join:${req.user.id}`, 6, 60_000).ok) throw new ControlError('Slow down a bit.', 429);
     await perform(client, guild, req.user, action, body);
     res.json({ ok: true });

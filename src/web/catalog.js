@@ -2,6 +2,7 @@
  * Metadata lookups for the dashboard: Deezer's public API for search/browse and
  * lrclib.net for lyrics. Playback itself always goes through Lavalink.
  */
+import { firstArtist, norm } from '../utils/trackKey.js';
 
 const DEEZER = 'https://api.deezer.com';
 const LRCLIB = 'https://lrclib.net/api';
@@ -52,6 +53,24 @@ const mapArtist = (a) => ({
   fans: a.nb_fan ?? null,
   url: `https://www.deezer.com/artist/${a.id}`,
 });
+
+/**
+ * The Deezer link for a song known only by title and artist (for example one that was played from
+ * Spotify). Only an exact title and artist match is accepted; returns null otherwise.
+ */
+export function findSong(title, author) {
+  return cached(`song:${norm(title)}|${norm(firstArtist(author))}`, 6 * 60 * 60_000, async () => {
+    const plainTitle = title.replace(/\s*[(\[].*?[)\]]/g, '').trim() || title;
+    const res = await getJson(`${DEEZER}/search?q=${encodeURIComponent(`${firstArtist(author)} ${plainTitle}`)}&limit=5`);
+    const wantTitle = norm(title);
+    const wantArtist = norm(firstArtist(author));
+    const hit = (res.data ?? []).find((t) => {
+      const name = norm(t.artist?.name);
+      return norm(t.title) === wantTitle && (name.includes(wantArtist) || wantArtist.includes(name));
+    });
+    return hit ? `https://www.deezer.com/track/${hit.id}` : null;
+  });
+}
 
 export function search(q) {
   return cached(`search:${q.toLowerCase()}`, 5 * 60_000, async () => {
