@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Disc3, Mic2, X, Headphones } from 'lucide-react';
 import { fmtLong } from '../api.js';
@@ -9,13 +9,33 @@ import { useList, VirtualRows } from '../lists.jsx';
 
 const sub = (t) => [t.author, t.requester ? `Added by ${t.requester.name}` : null].filter(Boolean).join(' · ');
 
+/** The current lyric line. When it changes, the old one slides up and fades while the new one rises in. */
 function CurrentLine({ lyrics }) {
   const position = usePosition(250);
   const lines = lyrics.synced;
+  const index = lines?.length ? activeLineIndex(lines, position) : -1;
+  const text = index >= 0 ? lines[index].text : '';
+
+  const last = useRef({ index, text });
+  const [leaving, setLeaving] = useState(null);
+
+  useEffect(() => {
+    if (last.current.index === index) return;
+    const old = last.current;
+    last.current = { index, text };
+    if (!old.text) return;
+    setLeaving(old);
+    const id = setTimeout(() => setLeaving(null), 500);
+    return () => clearTimeout(id);
+  }, [index, text]);
+
   if (!lines?.length) return null;
-  const i = activeLineIndex(lines, position);
-  const text = i >= 0 ? lines[i].text : '';
-  return text ? <p className="hero-line">{text}</p> : <p className="hero-line">&nbsp;</p>;
+  return (
+    <div className="hero-line-wrap" aria-live="off">
+      {leaving ? <p key={`out-${leaving.index}`} className="hero-line out" aria-hidden="true">{leaving.text}</p> : null}
+      <p key={`in-${index}`} className="hero-line in">{text || '\u00a0'}</p>
+    </div>
+  );
 }
 
 function Hero({ track, state, lyrics, onToggleLyrics, guildBase }) {

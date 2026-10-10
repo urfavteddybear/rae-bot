@@ -171,7 +171,12 @@ h1, h2, p { margin: 0; }
 .hero-by { display: flex; align-items: center; gap: 8px; color: var(--text-2); }
 .hero-by img { width: 20px; height: 20px; border-radius: 50%; }
 .hero-by strong { color: var(--text); font-weight: 600; }
-.hero-line { font-size: 16px; font-weight: 600; margin-top: 8px; max-width: 60ch; }
+.hero-line-wrap { position: relative; margin-top: 8px; min-height: 1.5em; max-width: 60ch; }
+.hero-line { font-size: 16px; font-weight: 600; line-height: 1.4; margin: 0; }
+.hero-line.in { animation: line-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.hero-line.out { position: absolute; inset: 0 0 auto 0; animation: line-out 0.45s ease both; pointer-events: none; }
+@keyframes line-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes line-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-14px); } }
 .hero-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
 .hero.empty { align-items: center; }
 .hero-empty-art { width: 208px; height: 208px; border-radius: 10px; background: var(--glass); display: grid; place-items: center; color: var(--text-3); flex: none; }
@@ -409,3 +414,9 @@ h1, h2, p { margin: 0; }
 .skeleton .art { width: 42px; height: 42px; border-radius: 6px; }
 .sk-line { height: 11px; width: 55%; border-radius: 6px; background: var(--glass-hover); margin: 4px 0; }
 .sk-line.short { width: 32%; height: 9px; }
+
+/* The small lyric line keeps its slide animation even when the OS asks for reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-line.in { animation: line-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both !important; }
+  .hero-line.out { animation: line-out 0.45s ease both !important; }
+}
