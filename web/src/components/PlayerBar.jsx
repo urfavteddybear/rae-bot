@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Repeat, Repeat1, SkipBack, SkipForward, Play, Pause, Square, Mic2, ListMusic, Shuffle, Infinity as InfinityIcon,
-  Volume1, Volume2, VolumeX, Maximize2, Minimize2,
+  Volume1, Volume2, VolumeX, Maximize2,
 } from 'lucide-react';
 import { fmtTime } from '../api.js';
 import { usePlayer, usePosition } from '../player.jsx';
 import { Art } from './TrackRow.jsx';
+import { usePresence } from '../hooks.js';
 
-function ProgressBar({ duration, disabled }) {
+export function ProgressBar({ duration, disabled }) {
   const { seek } = usePlayer();
   const position = usePosition(100);
   const [drag, setDrag] = useState(null);
@@ -58,9 +59,10 @@ function ProgressBar({ duration, disabled }) {
   );
 }
 
-function VolumeControl({ volume, disabled }) {
+export function VolumeControl({ volume, disabled }) {
   const { act } = usePlayer();
   const [open, setOpen] = useState(false);
+  const { mounted, exiting } = usePresence(open, 180);
   const wrap = useRef(null);
 
   useEffect(() => {
@@ -74,8 +76,8 @@ function VolumeControl({ volume, disabled }) {
   return (
     <div className="popwrap" ref={wrap}>
       <button className="icon-btn" aria-label="Volume" aria-expanded={open} onClick={() => setOpen((o) => !o)}><Icon size={19} /></button>
-      {open ? (
-        <div className="popover volume">
+      {mounted ? (
+        <div className={`popover volume ${exiting ? 'exit' : ''}`}>
           <input
             type="range"
             min={0}
@@ -92,22 +94,33 @@ function VolumeControl({ volume, disabled }) {
   );
 }
 
-export function PlayerBar({ lyricsOpen, onToggleLyrics, guildBase }) {
+/** Loop, previous, play/pause, next and stop. Shared by the player bar and the Now Playing view. */
+export function Controls() {
   const { state, act } = usePlayer();
-  const navigate = useNavigate();
-  const [fullscreen, setFullscreen] = useState(!!document.fullscreenElement);
-
-  useEffect(() => {
-    const onChange = () => setFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', onChange);
-    return () => document.removeEventListener('fullscreenchange', onChange);
-  }, []);
-
   const track = state?.current;
   const can = !!state?.me.canControl && !!track;
   const loop = state?.repeatMode ?? 'off';
   const nextLoop = { off: 'queue', queue: 'track', track: 'off' }[loop];
   const LoopIcon = loop === 'track' ? Repeat1 : Repeat;
+
+  return (
+  <div className="controls">
+    <button className={`icon-btn ${loop !== 'off' ? 'on' : ''}`} disabled={!can} onClick={() => act('loop', { mode: nextLoop })} aria-label={`Loop: ${loop}`} title={`Loop: ${loop}`}><LoopIcon size={20} /></button>
+    <button className="icon-btn" disabled={!can || !state.historyTotal} onClick={() => act('previous')} aria-label="Previous"><SkipBack size={22} fill="currentColor" /></button>
+    <button className="play-btn" disabled={!can} onClick={() => act('toggle')} aria-label={state?.paused ? 'Play' : 'Pause'}>
+      {state?.paused || !track ? <Play size={26} fill="currentColor" /> : <Pause size={26} fill="currentColor" />}
+    </button>
+    <button className="icon-btn" disabled={!can} onClick={() => act('skip')} aria-label="Next"><SkipForward size={22} fill="currentColor" /></button>
+    <button className="icon-btn" disabled={!can} onClick={() => act('stop')} aria-label="Stop"><Square size={17} fill="currentColor" /></button>
+  </div>
+  );
+}
+
+export function PlayerBar({ lyricsOpen, onToggleLyrics, onOpenNowPlaying, guildBase }) {
+  const { state, act } = usePlayer();
+  const navigate = useNavigate();
+  const track = state?.current;
+  const can = !!state?.me.canControl && !!track;
 
   return (
     <footer className="playerbar">
@@ -126,15 +139,7 @@ export function PlayerBar({ lyricsOpen, onToggleLyrics, guildBase }) {
       </div>
 
       <div className="pb-center">
-        <div className="controls">
-          <button className={`icon-btn ${loop !== 'off' ? 'on' : ''}`} disabled={!can} onClick={() => act('loop', { mode: nextLoop })} aria-label={`Loop: ${loop}`} title={`Loop: ${loop}`}><LoopIcon size={20} /></button>
-          <button className="icon-btn" disabled={!can || !state.historyTotal} onClick={() => act('previous')} aria-label="Previous"><SkipBack size={22} fill="currentColor" /></button>
-          <button className="play-btn" disabled={!can} onClick={() => act('toggle')} aria-label={state?.paused ? 'Play' : 'Pause'}>
-            {state?.paused || !track ? <Play size={26} fill="currentColor" /> : <Pause size={26} fill="currentColor" />}
-          </button>
-          <button className="icon-btn" disabled={!can} onClick={() => act('skip')} aria-label="Next"><SkipForward size={22} fill="currentColor" /></button>
-          <button className="icon-btn" disabled={!can} onClick={() => act('stop')} aria-label="Stop"><Square size={17} fill="currentColor" /></button>
-        </div>
+        <Controls />
         <ProgressBar duration={track?.duration ?? 0} disabled={!can || track?.isStream} />
       </div>
 
@@ -146,13 +151,7 @@ export function PlayerBar({ lyricsOpen, onToggleLyrics, guildBase }) {
           <button className={`icon-btn ${state?.autoplay ? 'on' : ''}`} disabled={!state?.me.canControl || !state?.connected} onClick={() => act('autoplay')} aria-label="Autoplay" aria-pressed={!!state?.autoplay} title="Autoplay"><InfinityIcon size={19} /></button>
         </div>
         <VolumeControl volume={state?.volume ?? 100} disabled={!can} />
-        <button
-          className="icon-btn"
-          aria-label="Toggle fullscreen"
-          onClick={() => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.())}
-        >
-          {fullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-        </button>
+        <button className="icon-btn" aria-label="Open now playing" onClick={onOpenNowPlaying}><Maximize2 size={18} /></button>
       </div>
     </footer>
   );

@@ -16,6 +16,8 @@
   --radius: 12px;
   --bar-h: 104px;
   --lyrics-w: 400px;
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   transition: --hue 1.2s ease, --sat 1.2s ease;
   color-scheme: dark;
 }
@@ -53,14 +55,12 @@ h1, h2, p { margin: 0; }
 .app {
   height: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 0px;
   grid-template-rows: auto minmax(0, 1fr) var(--bar-h);
-  grid-template-areas: 'top' 'main' 'bar';
-}
-.app.with-lyrics {
-  grid-template-columns: minmax(0, 1fr) var(--lyrics-w);
   grid-template-areas: 'top top' 'main lyrics' 'bar bar';
+  transition: grid-template-columns 0.45s var(--ease-out);
 }
+.app.with-lyrics { grid-template-columns: minmax(0, 1fr) var(--lyrics-w); }
 .topbar { grid-area: top; }
 .main { grid-area: main; overflow-y: auto; position: relative; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.2) transparent; }
 .lyrics { grid-area: lyrics; }
@@ -352,7 +352,8 @@ h1, h2, p { margin: 0; }
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
-  .app.with-lyrics { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'top' 'main' 'bar'; }
+  .app, .app.with-lyrics { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'top' 'main' 'bar'; }
+  .lyrics-inner { width: 100%; }
   .lyrics {
     position: fixed;
     z-index: 20;
@@ -392,10 +393,6 @@ h1, h2, p { margin: 0; }
   .toasts { bottom: calc(var(--bar-h) + 8px); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition: none !important; animation: none !important; }
-}
-
 .stack { display: flex; flex-direction: column; gap: 34px; }
 
 .stat.listeners { flex-direction: row; align-items: center; gap: 16px; max-width: 760px; margin-bottom: 8px; padding: 14px 20px; }
@@ -415,8 +412,186 @@ h1, h2, p { margin: 0; }
 .sk-line { height: 11px; width: 55%; border-radius: 6px; background: var(--glass-hover); margin: 4px 0; }
 .sk-line.short { width: 32%; height: 9px; }
 
-/* The small lyric line keeps its slide animation even when the OS asks for reduced motion. */
-@media (prefers-reduced-motion: reduce) {
-  .hero-line.in { animation: line-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both !important; }
-  .hero-line.out { animation: line-out 0.45s ease both !important; }
+/* ── Now Playing (immersive view) ────────────────────────────────────────── */
+.np {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  background: hsl(var(--hue) 40% 9%);
+  overflow: hidden;
+  animation: np-in 0.3s ease both;
 }
+@keyframes np-in { from { opacity: 0; transform: scale(0.985); } to { opacity: 1; transform: none; } }
+.np-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(75% 90% at 82% 38%, hsl(var(--hue) var(--sat) 36% / 0.95), transparent 72%),
+    radial-gradient(70% 55% at 100% 100%, hsl(calc(var(--hue) + 18) var(--sat) 20% / 0.9), transparent 70%),
+    hsl(var(--hue) 40% 10%);
+}
+.np-art { position: relative; grid-column: 1; grid-row: 1; min-height: 0; -webkit-mask-image: linear-gradient(90deg, #000 80%, transparent 100%); mask-image: linear-gradient(90deg, #000 80%, transparent 100%); }
+.np-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.np-art::after { content: ''; position: absolute; inset: 0; background: linear-gradient(transparent 45%, rgba(0, 0, 0, 0.72)); pointer-events: none; }
+.np-art-empty { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--text-3); font-weight: 600; }
+
+.np-top { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 2; display: flex; gap: 10px; }
+.np-top .nav-pill { background: rgba(20, 12, 16, 0.55); }
+
+.np-info { position: absolute; z-index: 2; left: 0; bottom: 0; width: 52%; padding: 0 clamp(24px, 12%, 120px) 26px; display: flex; flex-direction: column; gap: 6px; }
+.np-title-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.np-meta { min-width: 0; }
+.np-title { font-size: clamp(20px, 1.7vw, 28px); font-weight: 800; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.np-artist { color: rgba(255, 255, 255, 0.78); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.np-info .controls { margin-top: 4px; justify-content: space-between; }
+.np-info .popover.volume { right: 0; }
+
+.np-panel { position: relative; z-index: 1; grid-column: 2; grid-row: 1; min-height: 0; display: flex; flex-direction: column; padding: 84px 3vw 34px 1vw; }
+.np-panel .lyrics-scroll { padding: 0 8px 0 0; -webkit-mask-image: linear-gradient(transparent 0, #000 10%, #000 85%, transparent 100%); mask-image: linear-gradient(transparent 0, #000 10%, #000 85%, transparent 100%); }
+.np-panel .lyric { font-size: clamp(28px, 2.9vw, 50px); padding: 12px 0; }
+.np-scroll { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.25) transparent; padding-right: 8px; }
+.np-scroll .list-section { padding-bottom: 24px; }
+
+.credits { display: flex; flex-direction: column; gap: 18px; align-items: flex-start; }
+.credits h2 { font-size: clamp(26px, 2.6vw, 40px); font-weight: 800; letter-spacing: -0.02em; }
+.credits dl { margin: 0; display: grid; gap: 14px; width: 100%; }
+.credits dt { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-2); font-weight: 600; }
+.credits dd { margin: 2px 0 0; font-size: 18px; font-weight: 600; }
+.credit-user { display: flex; align-items: center; gap: 8px; }
+.credit-user img { width: 24px; height: 24px; border-radius: 50%; }
+
+.np.no-panel { grid-template-columns: minmax(0, 1fr); }
+.np.no-panel .np-art { -webkit-mask-image: none; mask-image: none; }
+.np.no-panel .np-art img { object-fit: contain; }
+.np.no-panel .np-info { width: 100%; align-items: stretch; padding-inline: max(24px, calc(50% - 360px)); }
+
+@media (max-width: 900px) {
+  .np { grid-template-columns: minmax(0, 1fr); }
+  .np-art { grid-column: 1; -webkit-mask-image: none; mask-image: none; }
+  .np-art img { object-fit: cover; opacity: 0.9; }
+  .np-info { width: 100%; padding: 0 20px 18px; }
+  .np-panel { position: absolute; inset: 64px 0 190px 0; padding: 8px 20px 0; background: rgba(12, 8, 12, 0.6); grid-column: 1; }
+  .np-panel .lyric { font-size: 26px; }
+  .np-top { width: max-content; max-width: calc(100% - 16px); gap: 6px; }
+  .np-top .pill-link { padding: 7px 9px; }
+  .np-top .pill-link svg { display: none; }
+}
+button.pill-link { border: 0; background: none; font: inherit; cursor: pointer; }
+button.pill-link.active { background: hsl(var(--hue) var(--sat) 60% / 0.3); }
+
+/* ── Page transitions ────────────────────────────────────────────────────── */
+.route-fade { animation: route-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.fade-stack { display: flex; flex-direction: column; gap: 34px; animation: route-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes route-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* Now Playing: the top toolbar only shows when the pointer is near the top (or it has keyboard focus). */
+.np-top { opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+.np-top.show, .np-top:focus-within { opacity: 1; pointer-events: auto; }
+@media (hover: none) { .np-top { opacity: 1; pointer-events: auto; } }
+
+.np:focus { outline: none; }
+
+/* ── Liquid glass controls ───────────────────────────────────────────────── */
+.seg, .nav-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), inset 0 -1px 0 rgba(255, 255, 255, 0.05), 0 8px 22px rgba(0, 0, 0, 0.22);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  backdrop-filter: blur(14px) saturate(1.5);
+}
+.seg-start { align-self: flex-start; }
+.seg-thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  border-radius: 999px;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, hsl(var(--hue) var(--sat) 72% / 0.55), hsl(var(--hue) var(--sat) 55% / 0.36));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 -1px 1px rgba(255, 255, 255, 0.12), 0 4px 14px hsl(var(--hue) var(--sat) 50% / 0.35);
+}
+.seg-thumb.visible { opacity: 1; }
+/* Width settles a touch slower than the slide, so the thumb stretches as it travels. */
+.seg.ready .seg-thumb { transition: transform 0.55s var(--spring), width 0.7s var(--spring), opacity 0.25s; }
+.seg-item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border: 0;
+  background: none;
+  border-radius: 999px;
+  color: var(--text-2);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.25s, transform 0.3s var(--spring);
+}
+.seg-item:hover, .seg-item.active { color: var(--text); }
+.seg-item:active { transform: scale(0.94); }
+
+/* Back / forward: a glass lens blooms under the icon on hover and squishes on press. */
+.nav-pill .icon-btn.lens { position: relative; transition: transform 0.35s var(--spring), color 0.2s; }
+.nav-pill .icon-btn.lens::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.1) 60%, transparent 72%);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.25s, transform 0.4s var(--spring);
+}
+.nav-pill .icon-btn.lens svg { position: relative; }
+.nav-pill .icon-btn.lens:hover:not(:disabled) { transform: scale(1.1); background: none; }
+.nav-pill .icon-btn.lens:hover:not(:disabled)::before { opacity: 1; transform: scale(1); }
+.nav-pill .icon-btn.lens:active:not(:disabled) { transform: scale(0.86); }
+
+.np-top .seg, .np-top .nav-pill { background: rgba(20, 12, 16, 0.5); }
+
+.back-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  align-self: flex-start;
+  margin-bottom: 10px;
+  padding: 8px 15px 8px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), 0 8px 22px rgba(0, 0, 0, 0.22);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  backdrop-filter: blur(14px) saturate(1.5);
+  color: var(--text);
+  font-weight: 600;
+  transition: transform 0.3s var(--spring);
+}
+.back-pill:hover { transform: translateX(-2px) scale(1.04); }
+.back-pill:active { transform: scale(0.94); }
+
+/* ── Popovers and the lyrics pane ────────────────────────────────────────── */
+.popover { --pop-y: -6px; transform-origin: top right; animation: pop-in 0.28s var(--spring) both; }
+.popover.volume { --pop-y: 6px; transform-origin: bottom right; }
+.popover.exit { animation: pop-out 0.18s ease both; }
+@keyframes pop-in { from { opacity: 0; transform: scale(0.9) translateY(var(--pop-y)); } to { opacity: 1; transform: none; } }
+@keyframes pop-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(0.94) translateY(var(--pop-y)); } }
+
+.lyrics { overflow: hidden; min-width: 0; transition: opacity 0.3s ease; }
+.lyrics.exit { opacity: 0; }
+.lyrics-inner { width: calc(var(--lyrics-w) - 9px); height: 100%; min-height: 0; display: flex; flex-direction: column; }
+.lyrics.enter .lyrics-inner { animation: lyrics-in 0.45s var(--ease-out) both; }
+.lyrics.exit .lyrics-inner { animation: lyrics-out 0.3s ease both; }
+@keyframes lyrics-in { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: none; } }
+@keyframes lyrics-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(36px); } }
+@media (max-width: 1100px) { .lyrics-inner { width: 100%; } }

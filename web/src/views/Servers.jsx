@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Music2 } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Music2 } from 'lucide-react';
 import { Art } from '../components/TrackRow.jsx';
 
 export const LAST_GUILD_KEY = 'rae:lastGuild';
@@ -8,7 +8,7 @@ export const LAST_GUILD_KEY = 'rae:lastGuild';
 export function Login() {
   return (
     <main className="splash">
-      <div className="splash-card">
+      <div className="splash-card route-fade">
         <div className="logo"><Music2 size={30} /></div>
         <h1>Rae</h1>
         <p>Control your server's music from the browser. Log in with Discord to get started.</p>
@@ -18,20 +18,30 @@ export function Login() {
   );
 }
 
+function readLastGuild() {
+  try { return localStorage.getItem(LAST_GUILD_KEY); } catch { return null; }
+}
+
 export function Servers({ me, auto }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  // Go back in history; if this page was opened directly, fall back to the last server.
+  const lastGuild = me.guilds.find((g) => g.id === readLastGuild());
+  const canGoBack = location.key !== 'default' || !!lastGuild;
+  const goBack = () => (location.key !== 'default' ? navigate(-1) : navigate(`/g/${lastGuild.id}`));
 
   useEffect(() => {
     if (!auto) return;
-    let last = null;
-    try { last = localStorage.getItem(LAST_GUILD_KEY); } catch { /* storage unavailable */ }
-    const target = me.guilds.find((g) => g.id === last) ?? (me.guilds.length === 1 ? me.guilds[0] : null);
+    const target = me.guilds.find((g) => g.id === readLastGuild()) ?? (me.guilds.length === 1 ? me.guilds[0] : null);
     if (target) navigate(`/g/${target.id}`, { replace: true });
   }, [auto, me, navigate]);
 
   return (
     <main className="splash left">
-      <div className="servers">
+      <div className="servers route-fade">
+        {!auto && canGoBack ? (
+          <button className="back-pill" onClick={goBack}><ArrowLeft size={16} />Back</button>
+        ) : null}
         <h1>Choose a server</h1>
         <p className="hero-sub">Servers you share with the bot.</p>
         {me.guilds.length ? (

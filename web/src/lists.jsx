@@ -60,7 +60,7 @@ export function useList(kind) {
 }
 
 /**
- * Renders only the rows near the viewport of the page's scroll container (.main), so a queue of
+ * Renders only the rows near the viewport of the nearest scroll container ([data-scroll]), so a queue of
  * thousands costs the same as one of fifty. Rows are fixed-height and absolutely positioned.
  */
 export function VirtualRows({ total, renderRow, onRange, overscan = 8 }) {
@@ -69,7 +69,7 @@ export function VirtualRows({ total, renderRow, onRange, overscan = 8 }) {
 
   useEffect(() => {
     const el = box.current;
-    const scroller = el?.closest('.main');
+    const scroller = el?.closest('[data-scroll]');
     if (!scroller) return;
     const update = () => {
       const top = el.getBoundingClientRect().top - scroller.getBoundingClientRect().top;

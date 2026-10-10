@@ -35,7 +35,8 @@ export function activeLineIndex(lines, position) {
   return ans;
 }
 
-export function LyricsPanel({ lyrics, onClose }) {
+/** The scrolling lyric lines, or plain text / a status message. Used by the side panel and the Now Playing view. */
+export function LyricsView({ lyrics }) {
   const { state, seek } = usePlayer();
   const position = usePosition(150);
   const scroller = useRef(null);
@@ -78,13 +79,19 @@ export function LyricsPanel({ lyrics, onClose }) {
   } else if (lyrics.plain) body = <pre className="lyrics-plain">{lyrics.plain}</pre>;
   else body = <p className="lyrics-note">No lyrics found for this song.</p>;
 
+  return <div className="lyrics-scroll" ref={scroller}>{body}</div>;
+}
+
+export function LyricsPanel({ lyrics, onClose, exiting }) {
   return (
-    <aside className="lyrics">
-      <header className="lyrics-head">
-        <h2>Lyrics</h2>
-        <button className="icon-btn" onClick={onClose} aria-label="Hide lyrics"><PanelRightClose size={18} /></button>
-      </header>
-      <div className="lyrics-scroll" ref={scroller}>{body}</div>
+    <aside className={`lyrics ${exiting ? 'exit' : 'enter'}`}>
+      <div className="lyrics-inner">
+        <header className="lyrics-head">
+          <h2>Lyrics</h2>
+          <button className="icon-btn" onClick={onClose} aria-label="Hide lyrics"><PanelRightClose size={18} /></button>
+        </header>
+        <LyricsView lyrics={lyrics} />
+      </div>
     </aside>
   );
 }

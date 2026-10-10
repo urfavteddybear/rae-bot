@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
-import { Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { api } from './api.js';
 import { PlayerProvider, usePlayer } from './player.jsx';
 import { useArtworkTheme } from './theme.js';
 import { TopBar } from './components/TopBar.jsx';
 import { PlayerBar } from './components/PlayerBar.jsx';
 import { LyricsPanel, useLyrics } from './components/Lyrics.jsx';
+import { NowPlaying } from './components/NowPlaying.jsx';
+import { usePresence } from './hooks.js';
 import { Home, QueuePage, HistoryPage } from './views/Home.jsx';
 import { Search, Collection } from './views/Search.jsx';
 import { Login, Servers, LAST_GUILD_KEY } from './views/Servers.jsx';
@@ -29,6 +31,20 @@ function Shell({ me }) {
 function ShellInner({ me, guildId, guildBase }) {
   const { state, status } = usePlayer();
   const [lyricsOpen, setLyricsOpen] = useState(readLyricsPref);
+  const [nowPlayingOpen, setNowPlayingOpen] = useState(false);
+  const { mounted: lyricsMounted, exiting: lyricsExiting } = usePresence(lyricsOpen, 450);
+  const closeNowPlaying = useCallback(() => setNowPlayingOpen(false), []);
+  const location = useLocation();
+  const mainRef = useRef(null);
+
+  // Must run inside the click so the browser allows it; the view leaves fullscreen when it closes.
+  const openNowPlaying = () => {
+    Promise.resolve(document.documentElement.requestFullscreen?.()).catch(() => {});
+    setNowPlayingOpen(true);
+  };
+
+  // New page, start at the top.
+  useEffect(() => { mainRef.current?.scrollTo(0, 0); }, [location.pathname]);
   const track = state?.current ?? null;
   const lyrics = useLyrics(track);
   useArtworkTheme(track?.artwork ?? null);
@@ -48,8 +64,9 @@ function ShellInner({ me, guildId, guildBase }) {
     <div className={`app ${lyricsOpen ? 'with-lyrics' : ''}`}>
       <div className="bg" aria-hidden="true" />
       <TopBar me={me} guildId={guildId} guildBase={guildBase} />
-      <main className="main">
+      <main className="main" data-scroll ref={mainRef}>
         {state ? (
+          <div key={location.pathname} className="route-fade">
           <Routes>
             <Route index element={<Home lyrics={lyrics} onToggleLyrics={toggleLyrics} guildBase={guildBase} />} />
             <Route path="search" element={<Search guildBase={guildBase} />} />
@@ -59,13 +76,15 @@ function ShellInner({ me, guildId, guildBase }) {
             <Route path="history" element={<HistoryPage />} />
             <Route path="*" element={<Navigate to={guildBase} replace />} />
           </Routes>
+          </div>
         ) : (
           <div className="page"><p className="empty-note">Connecting…</p></div>
         )}
         {status === 'reconnecting' ? <div className="notice floating">Connection lost. Reconnecting…</div> : null}
       </main>
-      {lyricsOpen ? <LyricsPanel lyrics={lyrics} onClose={toggleLyrics} /> : null}
-      <PlayerBar lyricsOpen={lyricsOpen} onToggleLyrics={toggleLyrics} guildBase={guildBase} />
+      {lyricsMounted ? <LyricsPanel lyrics={lyrics} onClose={toggleLyrics} exiting={lyricsExiting} /> : null}
+      <PlayerBar lyricsOpen={lyricsOpen} onToggleLyrics={toggleLyrics} onOpenNowPlaying={openNowPlaying} guildBase={guildBase} />
+      {nowPlayingOpen && state ? <NowPlaying lyrics={lyrics} onClose={closeNowPlaying} /> : null}
     </div>
   );
 }

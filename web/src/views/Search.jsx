@@ -5,6 +5,7 @@ import { api } from '../api.js';
 import { usePlayer } from '../player.jsx';
 import { useToast } from '../toast.jsx';
 import { Art, TrackRow } from '../components/TrackRow.jsx';
+import { Segmented } from '../components/Segmented.jsx';
 
 /**
  * Add/play helpers shared by search results and album/artist pages.
@@ -115,12 +116,9 @@ export function Search({ guildBase }) {
 
   return (
     <div className="page">
-      <div className="tabs" role="tablist">
-        {TABS.map(([id, label]) => (
-          <button key={id} role="tab" aria-selected={tab === id} className={`tab ${tab === id ? 'active' : ''}`} onClick={() => setTab(id)}>{label}</button>
-        ))}
-      </div>
+      <Segmented tabs items={TABS.map(([id, label]) => ({ id, label }))} value={tab} onSelect={setTab} className="seg-start" ariaLabel="Search results" />
 
+      <div key={`${q}|${tab}`} className="fade-stack">
       {loading ? <p className="empty-note">Searching…</p> : null}
       {error ? <p className="empty-note">Search failed. {error.message}</p> : null}
       {value && !value.tracks.length && !value.albums.length && !value.artists.length ? <p className="empty-note">No results for “{q}”.</p> : null}
@@ -155,6 +153,7 @@ export function Search({ guildBase }) {
       {value && tab === 'songs' ? <TrackList tracks={value.tracks} {...adder} /> : null}
       {value && tab === 'albums' ? <AlbumGrid albums={value.albums} guildBase={guildBase} /> : null}
       {value && tab === 'artists' ? <ArtistGrid artists={value.artists} guildBase={guildBase} /> : null}
+      </div>
     </div>
   );
 }

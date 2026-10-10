@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, House, Server, Search, X, LogOut, Check } from 'lucide-react';
 import { api } from '../api.js';
+import { usePresence } from '../hooks.js';
+import { Segmented } from './Segmented.jsx';
 
 function AccountMenu({ me, guildId }) {
   const [open, setOpen] = useState(false);
+  const { mounted, exiting } = usePresence(open, 180);
   const navigate = useNavigate();
   const wrap = useRef(null);
 
@@ -20,8 +23,8 @@ function AccountMenu({ me, guildId }) {
       <button className="avatar-btn" onClick={() => setOpen((o) => !o)} aria-label="Account and servers" aria-expanded={open}>
         <img src={me.user.avatar} alt="" />
       </button>
-      {open ? (
-        <div className="popover menu">
+      {mounted ? (
+        <div className={`popover menu ${exiting ? 'exit' : ''}`}>
           <div className="menu-user"><img src={me.user.avatar} alt="" /><strong>{me.user.name}</strong></div>
           <div className="menu-label">Servers</div>
           <div className="menu-list">
@@ -52,6 +55,13 @@ export function TopBar({ me, guildId, guildBase }) {
   const [text, setText] = useState(urlQuery);
   const input = useRef(null);
 
+  const path = location.pathname.replace(/\/$/, '');
+  const navValue = path === guildBase ? 'home' : path === '/servers' ? 'servers' : null;
+  const navItems = [
+    { id: 'home', label: 'Home', icon: House, to: guildBase },
+    { id: 'servers', label: 'Servers', icon: Server, to: '/servers' },
+  ];
+
   useEffect(() => setText(urlQuery), [urlQuery]);
 
   useEffect(() => {
@@ -78,13 +88,10 @@ export function TopBar({ me, guildId, guildBase }) {
   return (
     <header className="topbar">
       <div className="nav-pill">
-        <button className="icon-btn" onClick={() => navigate(-1)} aria-label="Back"><ChevronLeft size={18} /></button>
-        <button className="icon-btn" onClick={() => navigate(1)} aria-label="Forward"><ChevronRight size={18} /></button>
+        <button className="icon-btn lens" onClick={() => navigate(-1)} aria-label="Back"><ChevronLeft size={18} /></button>
+        <button className="icon-btn lens" onClick={() => navigate(1)} aria-label="Forward"><ChevronRight size={18} /></button>
       </div>
-      <nav className="nav-pill tabs-pill">
-        <NavLink to={guildBase} end className={({ isActive }) => `pill-link ${isActive ? 'active' : ''}`}><House size={16} />Home</NavLink>
-        <NavLink to="/servers" end className={({ isActive }) => `pill-link ${isActive ? 'active' : ''}`}><Server size={16} />Servers</NavLink>
-      </nav>
+      <Segmented items={navItems} value={navValue} className="tabs-pill" ariaLabel="Main navigation" />
 
       <form className="searchbox" role="search" onSubmit={(e) => { e.preventDefault(); if (text.trim()) navigate(`${guildBase}/search?q=${encodeURIComponent(text.trim())}`); }}>
         <Search size={16} />
