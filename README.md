@@ -115,7 +115,7 @@ An Apple Music-style web player for your servers: now playing with live progress
 
 **Development:** run the bot, then `npm run dev:web` (Vite on :5173 proxies to the bot on :3000).
 
-**Access rules:** anyone in a server the bot is in can view it. To control playback you must be in the same voice channel as the bot. If the bot isn't connected, adding a song from the dashboard joins your voice channel. Search and album/artist data comes from Deezer's public API, so the Deezer source must be enabled in Lavalink (it is by default). Lyrics come from lrclib.net. For HTTPS, put a reverse proxy in front and set `DASHBOARD_URL` to the public `https://` address.
+**Access rules:** anyone in a server the bot is in can view it. To control playback you must be in the same voice channel as the bot. If the bot isn't connected, adding a song from the dashboard joins your voice channel. Search and album/artist data comes from Deezer's public API, so the Deezer source must be enabled in Lavalink (it is by default). Lyrics come from lrclib.net. For HTTPS, put a reverse proxy in front and set `DASHBOARD_URL` to the public `https://` address. A step-by-step production guide (nginx or Cloudflare Tunnel, environment variables, security checklist, backups, troubleshooting) is in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ---
 
