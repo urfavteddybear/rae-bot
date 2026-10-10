@@ -11,6 +11,7 @@ A fast, lightweight, self-hostable Discord music bot built with **Discord.js v14
 - **28 slash commands** across music, queue, and info categories
 - Spotify / Apple Music / SoundCloud / YouTube support
 - **24/7 mode** — the bot stays in voice even when nothing is playing (toggle with `/247` or from the dashboard)
+- **Now Playing message** with ⏮ ⏸ ⏭ ⏹ buttons (for people in the bot's voice channel) and an **Open player** link button that opens the dashboard (when it's enabled). Optional icon: upload `assets/airplay.png` as an application emoji named `airplay` (Developer Portal > your app > Emojis), then restart the bot
 - **Autoplay** — continues playing related tracks when queue ends
 - **Lyrics** — powered by LavaSrc's built-in lyrics endpoint
 - **Docker-first** setup — one `docker compose up -d` and you're live

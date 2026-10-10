@@ -60,7 +60,8 @@ In the [Developer Portal](https://discord.com/developers/applications), create (
    ```
 
    Use your real public address. It must match `DASHBOARD_URL` + `/auth/callback` exactly: same scheme, same host, no trailing slash. Save the change.
-4. **Invite the bot** to your servers with this link (it asks for Connect, Speak, View Channel, Send Messages, Embed Links and the slash-command scope):
+4. **Optional icon:** in the **Emojis** tab, upload `assets/airplay.png` (from this repository) and keep its name `airplay`. The bot uses it as the icon on the Now Playing message's "Open player" button. It's read when the bot starts, so restart the bot after uploading.
+5. **Invite the bot** to your servers with this link (it asks for Connect, Speak, View Channel, Send Messages, Embed Links and the slash-command scope):
 
    ```
    https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=277293925376&scope=bot%20applications.commands

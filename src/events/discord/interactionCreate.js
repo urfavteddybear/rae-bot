@@ -1,6 +1,7 @@
 import { MessageFlags } from 'discord.js';
 import { log } from '../../utils/logger.js';
 import { replyError } from '../../utils/embeds.js';
+import { handleNowPlayingButton, isNowPlayingButton } from '../../utils/nowPlayingControls.js';
 
 const COOLDOWN_MS = 3000;
 
@@ -8,6 +9,12 @@ export default {
   name: 'interactionCreate',
   once: false,
   async execute(interaction, client) {
+    // Buttons under the Now Playing message (other buttons are handled by their own collectors)
+    if (isNowPlayingButton(interaction)) {
+      if (!interaction.inGuild()) return;
+      return handleNowPlayingButton(interaction, client);
+    }
+
     if (!interaction.isChatInputCommand()) return;
 
     const command = client.commands.get(interaction.commandName);
