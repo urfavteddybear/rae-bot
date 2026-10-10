@@ -35,15 +35,12 @@ services:
     networks:
       - bot-network
     volumes:
-      - rae-data:/app/data
+      - ./data:/app/data   # profile history (data/rae.db); see "Data folder" in the README
     ports:
       - "${WEB_PORT:-3000}:3000"
     environment:
       - WEB_PORT=3000
       - LAVALINK_NODES=[{"host":"lavalink","port":2333,"authorization":"youshallnotpass","secure":false,"id":"main"}]
-
-volumes:
-  rae-data:
 
 networks:
   bot-network:

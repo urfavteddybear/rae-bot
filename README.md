@@ -35,7 +35,18 @@ BOT_TOKEN=your_discord_bot_token
 CLIENT_ID=your_application_id
 ```
 
-### 2. Start everything
+### 2. Create the data folder
+
+Profile history is stored in `./data` (mounted into the container at `/app/data`). The bot runs as a non-root user (uid 1000), so create the folder first and make it writable by that user, otherwise Docker creates it owned by root and the database can't be opened (the bot still runs, but the Profile page says it's unavailable):
+
+```bash
+mkdir -p data
+sudo chown 1000:1000 data
+```
+
+Docker Desktop on Windows and macOS doesn't need the `chown`.
+
+### 3. Start everything
 
 ```bash
 docker compose up -d
@@ -43,7 +54,7 @@ docker compose up -d
 
 That's it. Lavalink starts first (health-checked), then the bot connects.
 
-### 3. Deploy commands
+### 4. Deploy commands
 
 ```bash
 docker exec rae-bot node src/deploy-commands.js
@@ -100,7 +111,7 @@ An Apple Music-style web player for your servers: now playing with live progress
 3. Docker: `docker compose up -d --build` (the image builds the frontend). Open `http://localhost:3000`.
    Without Docker: `npm run build:web` then `npm start`.
 
-**Profile page:** each person gets a Profile tab with their plays, different songs, first played, most repeated songs and recently played songs in that server. A play is counted when a song starts, for the person who queued it (autoplay songs count for nobody). History is stored in a SQLite file (`DB_PATH`, default `data/rae.db`). With Docker it lives in the `rae-data` volume, so keep that volume if you want to keep the history. People can delete their own history from the Profile page.
+**Profile page:** each person gets a Profile tab with their plays, different songs, first played, most repeated songs and recently played songs in that server. A play is counted when a song starts, for the person who queued it (autoplay songs count for nobody). History is stored in a SQLite file (`DB_PATH`, default `data/rae.db`). With Docker it's the `./data` folder on the host, so back that folder up if you want to keep the history (see the data folder permissions in Quick Start). People can delete their own history from the Profile page.
 
 **Development:** run the bot, then `npm run dev:web` (Vite on :5173 proxies to the bot on :3000).
 
