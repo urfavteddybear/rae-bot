@@ -14,7 +14,7 @@ export default {
       return replyError(interaction, 'No previous tracks in history.');
     }
 
-    const prev = player.queue.previous[player.queue.previous.length - 1];
+    const prev = player.queue.previous[0];
     // Add previous track to front of queue and skip
     player.queue.splice(0, 0, prev);
     await player.skip();

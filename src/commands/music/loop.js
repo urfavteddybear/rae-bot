@@ -10,7 +10,7 @@ export default {
       .setDescription('Loop mode')
       .setRequired(true)
       .addChoices(
-        { name: 'Off',   value: 'none' },
+        { name: 'Off',   value: 'off' },
         { name: 'Track', value: 'track' },
         { name: 'Queue', value: 'queue' },
       )),
@@ -22,7 +22,7 @@ export default {
     const mode = interaction.options.getString('mode', true);
     player.setRepeatMode(mode);
 
-    const labels = { none: 'Off', track: 'Track', queue: 'Queue' };
+    const labels = { off: 'Off', track: 'Track', queue: 'Queue' };
     await replySuccess(interaction, `Loop mode set to **${labels[mode]}**.`);
   },
 };
