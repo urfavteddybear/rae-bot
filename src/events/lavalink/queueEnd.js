@@ -1,4 +1,5 @@
 import { embed } from '../../utils/embeds.js';
+import { topUpAutoplay } from '../../utils/autoplay.js';
 
 export default {
   name: 'queueEnd',
@@ -7,20 +8,14 @@ export default {
     const channel = client.channels.cache.get(player.textChannelId);
 
     // ── Autoplay ─────────────────────────────────────────────────────────
-    if (player.get('autoplay') && track) {
-      const searchEngine = process.env.DEFAULT_SEARCH_ENGINE ?? 'dzsearch';
-      const query = `${searchEngine}:${track.info.title} ${track.info.author}`;
-
-      try {
-        const res = await player.search({ query }, { id: 'autoplay', tag: 'Autoplay' });
-        if (res?.tracks?.length) {
-          // Pick a track that isn't the same as what just finished
-          const next = res.tracks.find(t => t.info.uri !== track.info.uri) ?? res.tracks[0];
-          await player.queue.add(next);
-          if (!player.playing) await player.play();
-          return; // don't send "queue finished" message
-        }
-      } catch { /* fall through */ }
+    if (player.get('autoplay')) {
+      // A refill started at trackStart may still be running; wait for its first song (or the end).
+      for (let i = 0; i < 120 && player.get('autoplayBusy') && !player.queue.tracks.length; i++) await new Promise((r) => setTimeout(r, 250));
+      if (!player.queue.tracks.length) await topUpAutoplay(player, 1);
+      if (player.queue.tracks.length) {
+        if (!player.playing) await player.play();
+        return; // don't send "queue finished" message
+      }
     }
 
     const prevMsg = player.get('nowPlayingMessage');

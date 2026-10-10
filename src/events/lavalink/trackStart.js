@@ -1,10 +1,14 @@
 import { log } from '../../utils/logger.js';
 import { nowPlayingEmbed } from '../../utils/embeds.js';
+import { topUpAutoplay } from '../../utils/autoplay.js';
 
 export default {
   name: 'trackStart',
   emitter: 'player',
   async execute(player, track, payload, client) {
+    // Queue the next songs now so autoplay never leaves a gap (and shows up in the queue).
+    topUpAutoplay(player).catch(() => {});
+
     const channel = client.channels.cache.get(player.textChannelId);
     if (!channel?.isTextBased()) return;
 

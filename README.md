@@ -163,7 +163,7 @@ An Apple Music-style web player for your servers: now playing with live progress
 | `/previous` | Play the previous track |
 | `/replay` | Restart the current track |
 | `/seek [time]` | Seek to a timestamp (e.g. `1:30` or `90`) |
-| `/autoplay` | Toggle autoplay |
+| `/autoplay` | Toggle autoplay (queues 20 related songs at a time) |
 
 ### 🔧 Player
 
@@ -219,6 +219,7 @@ The `bot` service depends on `lavalink` with a health check — it will wait up 
 | `INVITE_URL` | ❌ | auto-generated | Bot invite URL |
 | `SUPPORT_SERVER` | ❌ | — | Support server invite |
 | `ACCENT_COLOR` | ❌ | `5865F2` | Embed accent colour (hex) |
+| `LASTFM_API_KEY` | ❌ | — | Last.fm key for better autoplay recommendations |
 | `CLIENT_SECRET` | ❌ | — | Enables the web dashboard (Discord OAuth2 secret) |
 | `DASHBOARD_URL` | ❌ | `http://localhost:3000` | Public dashboard URL (used for the OAuth redirect) |
 | `WEB_PORT` | ❌ | `3000` | Dashboard port |

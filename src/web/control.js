@@ -1,4 +1,5 @@
 import { MAX_QUEUE_SIZE } from '../utils/limits.js';
+import { resetAutoplay, setAutoplay } from '../utils/autoplay.js';
 
 const DEEZER_URL = /^https:\/\/(www\.)?deezer\.com\/(?:[a-z]{2}\/)?(track|album|artist|playlist)\/\d{1,15}$/;
 
@@ -110,6 +111,8 @@ export async function perform(client, guild, user, action, body = {}) {
     else await player.queue.add(tracks);
     if (!hadCurrent) await player.play();
     else if (body.now) await player.skip();
+    // Playing a song right now: autoplay restarts from this song instead of the previous one.
+    if (body.now) await resetAutoplay(player);
     return;
   }
 
@@ -157,7 +160,7 @@ export async function perform(client, guild, user, action, body = {}) {
       if (queue.tracks.length > 1) await queue.shuffle();
       break;
     case 'autoplay':
-      player.set('autoplay', !player.get('autoplay'));
+      await setAutoplay(player, !player.get('autoplay'));
       break;
     case 'clear':
       if (queue.tracks.length) await queue.splice(0, queue.tracks.length);
@@ -173,6 +176,7 @@ export async function perform(client, guild, user, action, body = {}) {
       expectTrack(queue.tracks, idx, body.id);
       await queue.splice(0, idx);
       await player.skip();
+      await resetAutoplay(player);
       break;
     }
     case 'move': {
@@ -191,6 +195,7 @@ export async function perform(client, guild, user, action, body = {}) {
       queue.splice(0, 0, track);
       if (queue.current) await player.skip();
       else await player.play();
+      await resetAutoplay(player);
       break;
     }
     default:
