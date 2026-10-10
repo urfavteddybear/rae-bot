@@ -8,8 +8,8 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "deploy": "node src/deploy-commands.js",
-    "dev:web": "npm --prefix web run dev",
-    "build:web": "npm --prefix web install && npm --prefix web run build"
+    "dev:web": "cd web && npm run dev",
+    "build:web": "cd web && npm install && npm run build"
   },
   "dependencies": {
     "discord.js": "^14.16.3",
