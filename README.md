@@ -10,7 +10,7 @@ A fast, lightweight, self-hostable Discord music bot built with **Discord.js v14
 
 - **28 slash commands** across music, queue, and info categories
 - Spotify / Apple Music / SoundCloud / YouTube support
-- **24/7 mode** — persisted per guild in SQLite, auto-rejoin on disconnect
+- **24/7 mode** — the bot stays in voice even when nothing is playing (toggle with `/247` or from the dashboard)
 - **Autoplay** — continues playing related tracks when queue ends
 - **Lyrics** — powered by LavaSrc's built-in lyrics endpoint
 - **Docker-first** setup — one `docker compose up -d` and you're live
@@ -115,13 +115,13 @@ An Apple Music-style web player for your servers: now playing with live progress
 
 **Development:** run the bot, then `npm run dev:web` (Vite on :5173 proxies to the bot on :3000).
 
-**Access rules:** anyone in a server the bot is in can view it. To control playback you must be in the same voice channel as the bot. If the bot isn't connected, adding a song from the dashboard joins your voice channel. Search and album/artist data comes from Deezer's public API, so the Deezer source must be enabled in Lavalink (it is by default). Lyrics come from lrclib.net. For HTTPS, put a reverse proxy in front and set `DASHBOARD_URL` to the public `https://` address. A step-by-step production guide (nginx or Cloudflare Tunnel, environment variables, security checklist, backups, troubleshooting) is in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+**Access rules:** anyone in a server the bot is in can view it. To control playback you must be in the same voice channel as the bot. If the bot isn't connected, adding a song from the dashboard joins your voice channel. The clock button in the player bar toggles 24/7 mode, like `/247`: the bot stays in the voice channel even when nothing is playing. Anyone in the bot's channel can toggle it. If the bot is kicked or disconnected, the session just ends. Search and album/artist data comes from Deezer's public API, so the Deezer source must be enabled in Lavalink (it is by default). Lyrics come from lrclib.net. For HTTPS, put a reverse proxy in front and set `DASHBOARD_URL` to the public `https://` address. A step-by-step production guide (nginx or Cloudflare Tunnel, environment variables, security checklist, backups, troubleshooting) is in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ---
 
 ## 🔒 Security
 
-- **Voice-channel gating:** slash commands that change playback (`/skip`, `/clear`, `/disconnect`, ...) only work for people in the bot's voice channel. The bot won't be pulled out of a channel that still has listeners. `/247` needs **Manage Server**.
+- **Voice-channel gating:** slash commands that change playback (`/skip`, `/clear`, `/disconnect`, ...) only work for people in the bot's voice channel. The bot won't be pulled out of a channel that still has listeners. `/247` also needs you to be in the bot's voice channel.
 - **Link allow-list:** `/play` only accepts links from known music services (extend with `ALLOWED_URL_HOSTS`), so Lavalink can't be pointed at internal addresses.
 - **Limits:** queries are capped at 300 characters. Queues are unlimited unless you set `QUEUE_LIMIT`.
 - **Dashboard:** per-IP and per-user rate limits, CSRF protection (origin check + JSON-only), strict CSP and security headers, signed `HttpOnly` cookies (`__Host-` prefixed over HTTPS), session revocation on logout, WebSocket origin/connection limits, and a size-capped, raster-only image proxy.

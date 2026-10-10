@@ -1,5 +1,4 @@
-import { getStay247, getStay247Data } from '../../utils/stay247.js';
-import { log } from '../../utils/logger.js';
+import { getStay247, setStay247 } from '../../utils/stay247.js';
 
 export default {
   name: 'voiceStateUpdate',
@@ -7,39 +6,14 @@ export default {
   async execute(oldState, newState, client) {
     const { guild } = newState;
 
-    // ── Bot disconnected ─────────────────────────────────────────────────
+    // ── Bot disconnected (kicked, moved out, channel deleted) ────────────
+    // The session simply ends, 24/7 or not. 24/7 only stops the bot from leaving on its own.
     if (oldState.member?.id === client.user.id && !newState.channelId) {
-      const stayData = getStay247Data(guild.id);
-      if (stayData?.stay247) {
-        const channelId = stayData.voiceChannelId || oldState.channelId;
-        if (!channelId) return;
-        setTimeout(async () => {
-          try {
-            let player = client.lavalink.getPlayer(guild.id);
-            if (!player) {
-              player = await client.lavalink.createPlayer({
-                guildId: guild.id,
-                voiceChannelId: channelId,
-                textChannelId: stayData.textChannelId,
-                selfDeaf: true,
-                volume: 100,
-              });
-            } else {
-              player.voiceChannelId = channelId;
-              player.options.voiceChannelId = channelId;
-            }
-            await player.connect();
-            log.info(`[247] Rejoined ${channelId} in ${guild.name}`);
-          } catch (err) {
-            log.warn(`[247] Failed to rejoin: ${err.message}`);
-          }
-        }, 3000);
-      } else {
-        const player = client.lavalink.getPlayer(guild.id);
-        const timer = player?.get('alone_timer');
-        if (timer) clearTimeout(timer);
-        try { await player?.destroy(); } catch { /* ignore */ }
-      }
+      setStay247(guild.id, false);
+      const player = client.lavalink.getPlayer(guild.id);
+      const timer = player?.get('alone_timer');
+      if (timer) clearTimeout(timer);
+      try { await player?.destroy(); } catch { /* ignore */ }
       return;
     }
 

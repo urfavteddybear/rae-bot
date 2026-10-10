@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Repeat, Repeat1, SkipBack, SkipForward, Play, Pause, Square, Mic2, ListMusic, Shuffle, Infinity as InfinityIcon,
+  Repeat, Repeat1, SkipBack, SkipForward, Play, Pause, Square, Mic2, ListMusic, Shuffle, Infinity as InfinityIcon, Clock,
   Volume1, Volume2, VolumeX, Maximize2,
 } from 'lucide-react';
 import { fmtTime } from '../api.js';
 import { usePlayer, usePosition } from '../player.jsx';
 import { Art } from './TrackRow.jsx';
 import { usePresence } from '../hooks.js';
+import { useToast } from '../toast.jsx';
 
 export function ProgressBar({ duration, disabled }) {
   const { seek } = usePlayer();
@@ -118,6 +119,7 @@ export function Controls() {
 
 export function PlayerBar({ lyricsOpen, onToggleLyrics, onOpenNowPlaying, guildBase }) {
   const { state, act } = usePlayer();
+  const toast = useToast();
   const navigate = useNavigate();
   const track = state?.current;
   const can = !!state?.me.canControl && !!track;
@@ -149,6 +151,14 @@ export function PlayerBar({ lyricsOpen, onToggleLyrics, onOpenNowPlaying, guildB
           <button className="icon-btn" onClick={() => navigate(`${guildBase}/queue`)} aria-label="Queue"><ListMusic size={18} /></button>
           <button className="icon-btn" disabled={!can || (state?.queueTotal ?? 0) < 2} onClick={() => act('shuffle')} aria-label="Shuffle queue"><Shuffle size={18} /></button>
           <button className={`icon-btn ${state?.autoplay ? 'on' : ''}`} disabled={!state?.me.canControl || !state?.connected} onClick={() => act('autoplay')} aria-label="Autoplay" aria-pressed={!!state?.autoplay} title="Autoplay"><InfinityIcon size={19} /></button>
+          <button
+            className={`icon-btn ${state?.stay247 ? 'on' : ''}`}
+            disabled={!state?.me.canControl || !state?.connected}
+            onClick={async () => { if (await act('stay247')) toast(state.stay247 ? '24/7 mode off' : '24/7 mode on: the bot stays even when nothing is playing'); }}
+            aria-label="24/7 mode"
+            aria-pressed={!!state?.stay247}
+            title={state?.stay247 ? '24/7 mode is on: the bot stays even when nothing is playing. Click to turn it off' : '24/7 mode: stay in the voice channel even when nothing is playing'}
+          ><Clock size={18} /></button>
         </div>
         <VolumeControl volume={state?.volume ?? 100} disabled={!can} />
         <button className="icon-btn" aria-label="Open now playing" onClick={onOpenNowPlaying}><Maximize2 size={18} /></button>

@@ -1,6 +1,7 @@
 import { MAX_QUEUE_SIZE } from '../utils/limits.js';
 import { resetAutoplay, setAutoplay } from '../utils/autoplay.js';
 import { findSong } from './catalog.js';
+import { applyStay247, getStay247 } from '../utils/stay247.js';
 
 const DEEZER_URL = /^https:\/\/(www\.)?deezer\.com\/(?:[a-z]{2}\/)?(track|album|artist|playlist)\/\d{1,15}$/;
 
@@ -98,6 +99,19 @@ async function joinUser(client, guild, userId) {
 
 export async function perform(client, guild, user, action, body = {}) {
   if (action === 'join') return joinUser(client, guild, user.id);
+
+  // 24/7 mode: the bot stays in the voice channel even when nothing is playing. Anyone in the bot's channel can toggle it.
+  if (action === 'stay247') {
+    const vc = userVoiceChannel(guild, user.id);
+    const player = client.lavalink.getPlayer(guild.id);
+    if (!vc) throw new ControlError('Join a voice channel first.', 403);
+    if (player && vc.id !== player.voiceChannelId) throw new ControlError("Join the bot's voice channel to change 24/7 mode.", 403);
+    if (!player && !vc.permissionsFor(client.user).has(['Connect', 'Speak'])) {
+      throw new ControlError("I don't have permission to join your voice channel.", 403);
+    }
+    await applyStay247(client, guild.id, !getStay247(guild.id), { voiceChannelId: vc.id, textChannelId: vc.id });
+    return;
+  }
 
   // A song from the profile shelves: a Deezer link if we kept one, otherwise found by title and artist.
   if (action === 'addSong') {

@@ -1,3 +1,5 @@
+import { getStay247 } from '../utils/stay247.js';
+
 const MAX_PAGE = 200;
 
 function serializeRequester(r) {
@@ -74,6 +76,7 @@ export function serializePlayer(player, stats) {
     volume: player.volume,
     repeatMode: player.repeatMode,
     autoplay: !!player.get('autoplay'),
+    stay247: getStay247(player.guildId),
     voiceChannelId: player.voiceChannelId ?? null,
     current: serializeTrack(player.queue.current),
     queueTotal: player.queue.tracks.length,
@@ -94,6 +97,7 @@ export function emptyState(guildId) {
     volume: 100,
     repeatMode: 'off',
     autoplay: false,
+    stay247: false,
     voiceChannelId: null,
     current: null,
     queueTotal: 0,
