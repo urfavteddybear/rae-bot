@@ -1,11 +1,15 @@
 import { embed } from '../../utils/embeds.js';
 import { topUpAutoplay } from '../../utils/autoplay.js';
+import { cancelLeaveTimers, getStay247 } from '../../utils/stay247.js';
 
 export default {
   name: 'queueEnd',
   emitter: 'player',
   async execute(player, track, payload, client) {
     const channel = client.channels.cache.get(player.textChannelId);
+
+    // 24/7: the library starts its leave timer just before emitting queueEnd, so it can only be cancelled here.
+    if (getStay247(player.guildId)) cancelLeaveTimers(player);
 
     // ── Autoplay ─────────────────────────────────────────────────────────
     if (player.get('autoplay')) {

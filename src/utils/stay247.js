@@ -41,4 +41,25 @@ export async function applyStay247(client, guildId, enable, channels = {}) {
     await player.connect();
   }
   setStay247(guildId, enable);
+
+  // Turning it on must also cancel a leave timer that is already counting down.
+  const player = enable ? client.lavalink.getPlayer(guildId) : null;
+  if (player) cancelLeaveTimers(player);
+}
+
+/**
+ * Cancel the two timers that make the bot leave on its own: the library's "queue is empty" timer
+ * (internal_queueempty) and our "alone in the channel" timer.
+ */
+export function cancelLeaveTimers(player) {
+  const emptyQueue = player.getData('internal_queueempty');
+  if (emptyQueue) {
+    clearTimeout(emptyQueue);
+    player.setData('internal_queueempty', undefined);
+  }
+  const alone = player.get('alone_timer');
+  if (alone) {
+    clearTimeout(alone);
+    player.set('alone_timer', null);
+  }
 }

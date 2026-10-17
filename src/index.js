@@ -3,7 +3,6 @@ import { Client, GatewayIntentBits, Collection, ActivityType, Options } from 'di
 import { LavalinkManager } from 'lavalink-client';
 import { loadCommands } from './handlers/commandHandler.js';
 import { loadEvents } from './handlers/eventHandler.js';
-import { getStay247 } from './utils/stay247.js';
 import { log } from './utils/logger.js';
 import { dashboardEnabled } from './utils/features.js';
 
@@ -87,18 +86,6 @@ client.on('raw', (data) => {
     client.lavalink.sendRawData(data);
   }
 });
-
-// ── 24/7 Empty Queue Guard ────────────────────────────────────────────────
-client.lavalink.on('playerQueueEmptyStart', (player) => {
-  if (getStay247(player.guildId)) {
-    const timer = player.getData('internal_queueempty');
-    if (timer) {
-      clearTimeout(timer);
-      player.setData('internal_queueempty', void 0);
-    }
-  }
-});
-
 
 // ── Load handlers ──────────────────────────────────────────────────────────
 // The dashboard and its database are loaded only when DASHBOARD=true, so the bot stays lean otherwise.
