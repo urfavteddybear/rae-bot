@@ -121,7 +121,7 @@ export async function perform(client, guild, user, action, body = {}) {
     const stored = typeof body.uri === 'string' && body.uri.length < 200 && /\/track\/\d+$/.test(body.uri) && DEEZER_URL.test(body.uri) ? body.uri : null;
     const url = stored ?? await findSong(title, author).catch(() => null);
     if (!url) throw new ControlError("Couldn't find that song to play.", 404);
-    return perform(client, guild, user, 'add', { url, now: !!body.now });
+    return perform(client, guild, user, 'add', { url, now: !!body.now, next: !!body.next });
   }
 
   if (action === 'add') {
@@ -223,7 +223,9 @@ export async function perform(client, guild, user, action, body = {}) {
       const idx = int(body.index, 0, queue.previous.length - 1);
       expectTrack(queue.previous, idx, body.id);
       if (queue.tracks.length >= MAX_QUEUE_SIZE) throw new ControlError(`The queue is full (${MAX_QUEUE_SIZE} tracks).`);
-      await queue.add({ ...queue.previous[idx], requester: requesterOf(guild, user) });
+      const track = { ...queue.previous[idx], requester: requesterOf(guild, user) };
+      if (body.next && queue.current) await queue.splice(0, 0, track);
+      else await queue.add(track);
       if (!queue.current) await player.play();
       break;
     }

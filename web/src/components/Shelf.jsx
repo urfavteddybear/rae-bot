@@ -4,6 +4,7 @@ import { useSingleDoubleClick } from '../hooks.js';
 import { usePlayer } from '../player.jsx';
 import { useToast } from '../toast.jsx';
 import { Art } from './TrackRow.jsx';
+import { songMenu, useContextMenu } from '../contextmenu.jsx';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -42,18 +43,28 @@ function ShelfCard({ song, showPlays }) {
   const toast = useToast();
   const can = !!state?.me.canControl;
 
+  const openMenu = useContextMenu();
+
   // Stored songs may have come from any source, so the bot finds them on Deezer by title and artist.
-  const send = async (now) => {
-    const ok = await act('addSong', { title: song.title, author: song.author, uri: song.uri, now });
-    if (ok) toast(now ? `Playing ${song.title}` : `Added ${song.title} to the queue`);
+  const send = async (mode) => {
+    const ok = await act('addSong', { title: song.title, author: song.author, uri: song.uri, now: mode === 'now', next: mode === 'next' });
+    if (ok) toast(mode === 'now' ? `Playing ${song.title}` : mode === 'next' ? `Up next: ${song.title}` : `Added ${song.title} to the queue`);
   };
-  const clicks = useSingleDoubleClick(can ? () => send(false) : undefined, can ? () => send(true) : undefined);
+  const clicks = useSingleDoubleClick(can ? () => send('add') : undefined, can ? () => send('now') : undefined);
+  const menu = songMenu({
+    can,
+    uri: song.uri,
+    playNow: () => send('now'),
+    playNext: () => send('next'),
+    add: () => send('add'),
+  });
 
   return (
     <button
       className="shelf-card"
       disabled={!can}
       title={can ? 'Click to add to the queue, double-click to play now' : 'Join the bot’s voice channel to play this'}
+      onContextMenu={menu.length ? (e) => openMenu(e, menu) : undefined}
       {...clicks}
     >
       <Art src={song.artwork} className="shelf-art" />

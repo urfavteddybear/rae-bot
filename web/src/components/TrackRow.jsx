@@ -1,5 +1,6 @@
 import { fmtTime } from '../api.js';
 import { useSingleDoubleClick } from '../hooks.js';
+import { useContextMenu } from '../contextmenu.jsx';
 
 export function Art({ src, size, round, className = '' }) {
   return (
@@ -14,7 +15,8 @@ export function Art({ src, size, round, className = '' }) {
  * With `onPlay`, clicking the artwork or double-clicking the row plays the song.
  * With `onAdd` / `onPlayNow` instead, a click on the row adds the song and a double-click plays it now.
  */
-export function TrackRow({ art, title, subtitle, explicit, badge, duration, onPlay, onAdd, onPlayNow, actions, dragProps, dim, active }) {
+export function TrackRow({ art, title, subtitle, explicit, badge, duration, onPlay, onAdd, onPlayNow, actions, dragProps, dim, active, menu }) {
+  const openMenu = useContextMenu();
   const clickMode = !!(onAdd || onPlayNow);
   const clicks = useSingleDoubleClick(onAdd, clickMode ? onPlayNow : onPlay);
   const stop = (e) => e.stopPropagation();
@@ -22,6 +24,7 @@ export function TrackRow({ art, title, subtitle, explicit, badge, duration, onPl
   return (
     <div
       className={`row ${dim ? 'dim' : ''} ${active ? 'active' : ''}`}
+      onContextMenu={menu ? (e) => openMenu(e, menu) : undefined}
       {...clicks}
       {...dragProps}
     >

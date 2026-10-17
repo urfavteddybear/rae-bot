@@ -5,12 +5,15 @@ import '@fontsource-variable/inter';
 import './styles.css';
 import App from './App.jsx';
 import { ToastProvider } from './toast.jsx';
+import { ContextMenuProvider } from './contextmenu.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <ToastProvider>
-        <App />
+        <ContextMenuProvider>
+          <App />
+        </ContextMenuProvider>
       </ToastProvider>
     </BrowserRouter>
   </StrictMode>,

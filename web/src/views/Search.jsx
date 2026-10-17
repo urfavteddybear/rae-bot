@@ -5,6 +5,7 @@ import { api } from '../api.js';
 import { usePlayer } from '../player.jsx';
 import { useToast } from '../toast.jsx';
 import { Art, TrackRow } from '../components/TrackRow.jsx';
+import { songMenu } from '../contextmenu.jsx';
 import { Segmented } from '../components/Segmented.jsx';
 
 /**
@@ -33,7 +34,7 @@ export function useAdder(ids = []) {
   }, [guildId, key, state.queueRev, state.current?.id]);
 
   const add = async (url, label, opts = {}) => {
-    if (await act('add', { url, ...opts })) toast(opts.now ? `Playing ${label}` : `Added ${label} to the queue`);
+    if (await act('add', { url, ...opts })) toast(opts.now ? `Playing ${label}` : opts.next ? `Up next: ${label}` : `Added ${label} to the queue`);
   };
   return { add, queued, canAdd: !!state.me.canControl };
 }
@@ -67,6 +68,13 @@ export function TrackList({ tracks, queued, add, canAdd, limit, clickToAdd }) {
           onPlay={!clickToAdd && canAdd ? () => add(t.url, t.title, { now: true }) : undefined}
           onAdd={clickToAdd && canAdd ? () => add(t.url, t.title) : undefined}
           onPlayNow={clickToAdd && canAdd ? () => add(t.url, t.title, { now: true }) : undefined}
+          menu={songMenu({
+            can: canAdd,
+            uri: t.url,
+            playNow: () => add(t.url, t.title, { now: true }),
+            playNext: () => add(t.url, t.title, { next: true }),
+            add: () => add(t.url, t.title),
+          })}
           actions={canAdd ? (
             <button className="icon-btn small" onClick={() => add(t.url, t.title)} aria-label={`Add ${t.title} to queue`} title="Add to queue"><ListPlus size={17} /></button>
           ) : null}

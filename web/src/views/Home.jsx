@@ -5,6 +5,7 @@ import { fmtLong } from '../api.js';
 import { usePlayer, usePosition } from '../player.jsx';
 import { useToast } from '../toast.jsx';
 import { Shelf, useProfile } from '../components/Shelf.jsx';
+import { songMenu } from '../contextmenu.jsx';
 import { activeLineIndex } from '../components/Lyrics.jsx';
 import { Art, TrackRow } from '../components/TrackRow.jsx';
 import { useList, VirtualRows } from '../lists.jsx';
@@ -142,6 +143,13 @@ export function UpNext({ limit, guildBase }) {
         subtitle={sub(t)}
         duration={t.duration}
         onPlay={can ? () => act('jump', { index: i, id: t.id }) : undefined}
+        menu={songMenu({
+          can,
+          uri: t.uri,
+          playNow: () => act('jump', { index: i, id: t.id }),
+          playNext: () => act('move', { from: i, to: 0, id: t.id }),
+          remove: () => act('remove', { index: i, id: t.id }),
+        })}
         dim={dragIndex === i}
         dragProps={can ? {
           draggable: true,
@@ -205,6 +213,13 @@ export function History({ limit, guildBase }) {
         duration={t.duration}
         onAdd={can ? async () => { if (await act('requeueHistory', { index: i, id: t.id })) toast(`Added ${t.title} to the queue`); } : undefined}
         onPlayNow={can ? () => act('playHistory', { index: i, id: t.id }) : undefined}
+        menu={songMenu({
+          can,
+          uri: t.uri,
+          playNow: () => act('playHistory', { index: i, id: t.id }),
+          playNext: () => act('requeueHistory', { index: i, id: t.id, next: true }),
+          add: () => act('requeueHistory', { index: i, id: t.id }),
+        })}
       />
     );
   };

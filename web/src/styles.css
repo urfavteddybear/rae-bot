@@ -648,3 +648,9 @@ button.pill-link.active { background: hsl(var(--hue) var(--sat) 60% / 0.3); }
 .row { user-select: none; }
 .shelf-card:disabled { opacity: 0.55; cursor: default; }
 .shelf-card:disabled:hover { transform: none; }
+
+/* ── Right-click menu ────────────────────────────────────────────────────── */
+.popover.ctx { position: fixed; z-index: 60; min-width: 190px; padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+.ctx-item { text-align: left; padding: 8px 12px; border: 0; background: none; border-radius: 8px; color: var(--text); font: inherit; font-weight: 500; }
+.ctx-item:hover, .ctx-item:focus-visible { background: var(--glass-hover); outline: none; }
+.ctx-item.danger { color: #ff8b97; }
