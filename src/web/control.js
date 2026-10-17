@@ -134,15 +134,20 @@ export async function perform(client, guild, user, action, body = {}) {
     if (!res?.tracks?.length || res.loadType === 'error' || res.loadType === 'empty') {
       throw new ControlError('Could not load that from Lavalink.', 404);
     }
-    const room = MAX_QUEUE_SIZE - player.queue.tracks.length;
+    // Play now replaces the whole queue, so it never counts against the limit.
+    const room = body.now ? MAX_QUEUE_SIZE : MAX_QUEUE_SIZE - player.queue.tracks.length;
     if (room <= 0) throw new ControlError(`The queue is full (${MAX_QUEUE_SIZE} tracks).`);
     const tracks = (res.loadType === 'playlist' ? res.tracks : [res.tracks[0]]).slice(0, room);
     const hadCurrent = !!player.queue.current;
-    if ((body.next || body.now) && hadCurrent) await player.queue.splice(0, 0, tracks);
+    if (body.now) {
+      // Play now: clear everything queued (people's songs too), then play what was chosen.
+      await player.queue.splice(0, player.queue.tracks.length);
+      await player.queue.add(tracks);
+    } else if (body.next && hadCurrent) await player.queue.splice(0, 0, tracks);
     else await player.queue.add(tracks);
     if (!hadCurrent) await player.play();
     else if (body.now) await player.skip();
-    // Playing a song right now: autoplay restarts from this song instead of the previous one.
+    // With autoplay on, a fresh batch is queued from the song just chosen.
     if (body.now) await resetAutoplay(player);
     return;
   }
@@ -207,7 +212,7 @@ export async function perform(client, guild, user, action, body = {}) {
       expectTrack(queue.tracks, idx, body.id);
       await queue.splice(0, idx);
       await player.skip();
-      await resetAutoplay(player);
+      // Only skips ahead in the queue: autoplay's queued songs stay, unlike play-now from search.
       break;
     }
     case 'move': {
@@ -233,7 +238,9 @@ export async function perform(client, guild, user, action, body = {}) {
       const idx = int(body.index, 0, queue.previous.length - 1);
       expectTrack(queue.previous, idx, body.id);
       const track = { ...queue.previous[idx], requester: requesterOf(guild, user) };
-      queue.splice(0, 0, track);
+      // Play now: clear everything queued (people's songs too), then play this song.
+      await queue.splice(0, queue.tracks.length);
+      await queue.add(track);
       if (queue.current) await player.skip();
       else await player.play();
       await resetAutoplay(player);
