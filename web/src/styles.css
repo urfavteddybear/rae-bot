@@ -14,7 +14,7 @@
   --glass-hover: rgba(255, 255, 255, 0.12);
   --line: rgba(255, 255, 255, 0.1);
   --radius: 12px;
-  --bar-h: 104px;
+  --bar-h: 120px;
   --lyrics-w: 400px;
   --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -296,7 +296,7 @@ h1, h2, p { margin: 0; }
   grid-template-columns: minmax(200px, 1fr) minmax(320px, 2.2fr) minmax(200px, 1fr);
   align-items: center;
   gap: 16px;
-  padding: 0 20px 6px 12px;
+  padding: 12px 20px 6px 12px;
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.35));
 }
 .pb-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
