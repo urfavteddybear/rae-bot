@@ -90,7 +90,8 @@ Edit `.env`. Everything below goes in that one file.
 |---|---|
 | `BOT_TOKEN` | Bot token from the Developer Portal. Keep it secret. |
 | `CLIENT_ID` | Application ID. |
-| `CLIENT_SECRET` | OAuth2 client secret. **Setting it turns the dashboard on.** |
+| `DASHBOARD` | Set to `true` to turn the dashboard on. Anything else (or unset) runs the bot without a web server, database or profile. |
+| `CLIENT_SECRET` | OAuth2 client secret. Required when `DASHBOARD=true`. |
 | `DASHBOARD_URL` | The public address, e.g. `https://music.example.com`. No trailing slash. |
 
 `DASHBOARD_URL` matters more than it looks: the Discord login returns to this address, and every action (play, skip, queue) and the live WebSocket are only accepted when the browser's `Origin` is exactly this value. People must open the dashboard at this address; `www.` or another hostname will fail to log in or connect.
@@ -122,6 +123,7 @@ A production `.env` looks like this:
 BOT_TOKEN=...
 CLIENT_ID=...
 CLIENT_SECRET=...
+DASHBOARD=true
 DASHBOARD_URL=https://music.example.com
 SESSION_SECRET=6f1c...64 hex characters...
 TRUST_PROXY=1
@@ -376,7 +378,8 @@ You can run the bot directly if you provide Lavalink yourself.
 | Discord says **invalid redirect_uri** | The redirect in the Developer Portal doesn't exactly match `DASHBOARD_URL` + `/auth/callback` (scheme, host, trailing slash). |
 | Log in works, then you're sent back to the login page | Cookies aren't sticking. `DASHBOARD_URL` must be the `https://` address you actually browse, and you must visit it at exactly that hostname. |
 | "Bad origin" or the page loads but never goes live | The browser's origin doesn't match `DASHBOARD_URL`, or the proxy isn't forwarding WebSocket upgrades. Check the `Upgrade`/`Connection` headers in the nginx config, and that nothing rewrites `Origin`. |
-| The log says `Dashboard disabled` | `CLIENT_SECRET` isn't set. |
+| The log says `Dashboard off` | `DASHBOARD` isn't `true`. Set `DASHBOARD=true` in `.env` and recreate the bot container. |
+| The log says `DASHBOARD=true needs CLIENT_SECRET` | Set `CLIENT_SECRET` from the Developer Portal. |
 | The log says `SESSION_SECRET must be at least 32 characters` | Make it longer (`openssl rand -hex 32`) or remove it. |
 | The log warns about `X-Forwarded-For` without `TRUST_PROXY` | You're behind a proxy but `TRUST_PROXY` isn't set. Set it to the number of proxies. |
 | People hit "Too many requests" quickly | Same cause: every visitor looks like one address. Set `TRUST_PROXY` correctly. |

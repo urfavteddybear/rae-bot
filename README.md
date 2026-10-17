@@ -108,7 +108,7 @@ An Apple Music-style web player for your servers: now playing with live progress
 **Setup**
 
 1. In the [Discord Developer Portal](https://discord.com/developers/applications) > your app > **OAuth2**, copy the **Client Secret** and add the redirect `<DASHBOARD_URL>/auth/callback` (e.g. `http://localhost:3000/auth/callback`).
-2. Set `CLIENT_SECRET` and `DASHBOARD_URL` in `.env` (see `.env.example`). Without `CLIENT_SECRET` the dashboard stays off.
+2. Set `DASHBOARD=true`, `CLIENT_SECRET` and `DASHBOARD_URL` in `.env` (see `.env.example`). The dashboard is off unless `DASHBOARD=true`; without `CLIENT_SECRET` it won't start.
 3. Docker: `docker compose up -d --build` (the image builds the frontend). Open `http://localhost:3000`.
    Without Docker: `npm run build:web` then `npm start`.
 
@@ -234,7 +234,8 @@ The `bot` service depends on `lavalink` with a health check — it will wait up 
 | `SUPPORT_SERVER` | ❌ | — | Support server invite |
 | `ACCENT_COLOR` | ❌ | `5865F2` | Embed accent colour (hex) |
 | `LASTFM_API_KEY` | ❌ | — | Last.fm key for better autoplay recommendations |
-| `CLIENT_SECRET` | ❌ | — | Enables the web dashboard (Discord OAuth2 secret) |
+| `DASHBOARD` | ❌ | `false` | `true` turns the web dashboard on (needs `CLIENT_SECRET`). Off = lean bot: no web server, no database, no profile |
+| `CLIENT_SECRET` | ❌ | — | Discord OAuth2 secret, required when `DASHBOARD=true` |
 | `DASHBOARD_URL` | ❌ | `http://localhost:3000` | Public dashboard URL (used for the OAuth redirect) |
 | `WEB_PORT` | ❌ | `3000` | Dashboard port |
 | `SESSION_SECRET` | ❌ | hash of `BOT_TOKEN` | Key for signing login cookies |

@@ -1,6 +1,7 @@
 import { ActivityType } from 'discord.js';
 import { log } from '../../utils/logger.js';
 import { loadPlayerEmoji } from '../../utils/nowPlayingControls.js';
+import { dashboardEnabled } from '../../utils/features.js';
 
 export default {
   name: 'clientReady',
@@ -16,7 +17,7 @@ export default {
     });
 
     // Icon for the Now Playing "Open player" button (optional application emoji)
-    await loadPlayerEmoji(c);
+    if (dashboardEnabled()) await loadPlayerEmoji(c);
 
     // Connect Lavalink nodes
     await c.lavalink.init({ id: c.user.id, username: c.user.username });

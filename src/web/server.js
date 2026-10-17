@@ -24,7 +24,7 @@ const SNOWFLAKE = /^\d{15,22}$/;
 export function startWebServer(client) {
   const { CLIENT_ID, CLIENT_SECRET, BOT_TOKEN } = process.env;
   if (!CLIENT_SECRET) {
-    log.info('Dashboard disabled (set CLIENT_SECRET to enable it)');
+    log.info('Dashboard disabled (DASHBOARD=true and CLIENT_SECRET are both required)');
     return null;
   }
 

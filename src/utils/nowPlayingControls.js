@@ -5,6 +5,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
 import { log } from './logger.js';
 import { nowPlayingEmbed } from './embeds.js';
+import { dashboardEnabled } from './features.js';
 
 const PREFIX = 'np:';
 const PLAYER_EMOJI = 'airplay'; // name of the application emoji used on the "Open player" button
@@ -28,7 +29,7 @@ export async function loadPlayerEmoji(client) {
 
 /** The dashboard address, or null when the dashboard isn't enabled. */
 function dashboardUrl() {
-  if (!process.env.CLIENT_SECRET) return null;
+  if (!dashboardEnabled() || !process.env.CLIENT_SECRET) return null;
   const url = process.env.DASHBOARD_URL ?? `http://localhost:${process.env.WEB_PORT ?? 3000}`;
   return /^https?:\/\//.test(url) ? url : null;
 }

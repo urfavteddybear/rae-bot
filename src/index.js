@@ -5,8 +5,7 @@ import { loadCommands } from './handlers/commandHandler.js';
 import { loadEvents } from './handlers/eventHandler.js';
 import { getStay247 } from './utils/stay247.js';
 import { log } from './utils/logger.js';
-import { startWebServer } from './web/server.js';
-import { initDatabase } from './utils/db.js';
+import { dashboardEnabled } from './utils/features.js';
 
 // ── Validate required env vars ─────────────────────────────────────────────
 const required = ['BOT_TOKEN', 'CLIENT_ID', 'LAVALINK_NODES'];
@@ -102,7 +101,20 @@ client.lavalink.on('playerQueueEmptyStart', (player) => {
 
 
 // ── Load handlers ──────────────────────────────────────────────────────────
-await initDatabase();
+// The dashboard and its database are loaded only when DASHBOARD=true, so the bot stays lean otherwise.
+let dashboard = null;
+if (dashboardEnabled()) {
+  if (process.env.CLIENT_SECRET) {
+    dashboard = {
+      init: (await import('./utils/db.js')).initDatabase,
+      start: (await import('./web/server.js')).startWebServer,
+    };
+    await dashboard.init();
+  } else {
+    log.error('DASHBOARD=true needs CLIENT_SECRET. Dashboard not started.');
+  }
+}
+
 await loadCommands(client);
 await loadEvents(client);
 
@@ -110,6 +122,7 @@ await loadEvents(client);
 await client.login(process.env.BOT_TOKEN);
 
 // ── Dashboard ──────────────────────────────────────────────────────────────
-startWebServer(client);
+if (dashboard) dashboard.start(client);
+else if (!dashboardEnabled()) log.info('Dashboard off (set DASHBOARD=true to enable it)');
 
 export { client };
