@@ -234,6 +234,7 @@ The `bot` service depends on `lavalink` with a health check — it will wait up 
 | `SUPPORT_SERVER` | ❌ | — | Support server invite |
 | `ACCENT_COLOR` | ❌ | `5865F2` | Embed accent colour (hex) |
 | `LASTFM_API_KEY` | ❌ | — | Last.fm key for better autoplay recommendations |
+| `LRCLIB_URL` | ❌ | `https://lrclib.net/api` | lrclib API base for lyrics. Set it to route lookups through your own server or proxy (same `/get` and `/search` endpoints) |
 | `DASHBOARD` | ❌ | `false` | `true` turns the web dashboard on (needs `CLIENT_SECRET`). Off = lean bot: no web server, no database, no profile |
 | `CLIENT_SECRET` | ❌ | — | Discord OAuth2 secret, required when `DASHBOARD=true` |
 | `DASHBOARD_URL` | ❌ | `http://localhost:3000` | Public dashboard URL (used for the OAuth redirect) |

@@ -3,9 +3,9 @@
  * lrclib.net for lyrics. Playback itself always goes through Lavalink.
  */
 import { firstArtist, norm } from '../utils/trackKey.js';
+import { lrclibBase } from '../utils/lrclib.js';
 
 const DEEZER = 'https://api.deezer.com';
-const LRCLIB = 'https://lrclib.net/api';
 const UA = 'RaeMusicBot/1.0 (https://github.com/urfavteddybear/rae)';
 
 const cache = new Map();
@@ -130,7 +130,7 @@ export function lyrics(title, artistName, durationMs) {
     const clean = title.replace(/\s*[(\[].*?(feat|with|remaster|live).*?[)\]]/gi, '').trim() || title;
     const firstArtist = (artistName ?? '').split(/,|&/)[0].trim();
 
-    const get = new URL(`${LRCLIB}/get`);
+    const get = new URL(`${lrclibBase()}/get`);
     get.searchParams.set('track_name', clean);
     get.searchParams.set('artist_name', firstArtist);
     if (durationMs) get.searchParams.set('duration', String(Math.round(durationMs / 1000)));
@@ -142,7 +142,7 @@ export function lyrics(title, artistName, durationMs) {
 
     if (!hit?.syncedLyrics && !hit?.plainLyrics) {
       try {
-        const results = await getJson(`${LRCLIB}/search?q=${encodeURIComponent(`${clean} ${firstArtist}`)}`);
+        const results = await getJson(`${lrclibBase()}/search?q=${encodeURIComponent(`${clean} ${firstArtist}`)}`);
         hit = results.find((r) => r.syncedLyrics) ?? results.find((r) => r.plainLyrics) ?? null;
       } catch { /* no lyrics */ }
     }

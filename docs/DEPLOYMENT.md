@@ -102,6 +102,7 @@ Edit `.env`. Everything below goes in that one file.
 |---|---|
 | `TRUST_PROXY` | `1` when exactly one proxy sits in front (nginx **or** the tunnel). Use `2` if two do (for example Cloudflare's proxy in front of nginx). Without it, rate limits see every visitor as the proxy's address and everyone shares one limit. |
 | `SESSION_SECRET` | A random string of **at least 32 characters** that signs login cookies. Generate one with `openssl rand -hex 32`. If you set a shorter value the dashboard refuses to start. If you leave it empty it is derived from `BOT_TOKEN`, so rotating the token logs everyone out. |
+| `LRCLIB_URL` | Lyrics API base, default `https://lrclib.net/api`. Point it at your own server or proxy of lrclib (same `/get` and `/search` endpoints). Include `/api`, no trailing slash. |
 | `LASTFM_API_KEY` | Your Last.fm API key (the key only, not the shared secret). Autoplay uses Last.fm when it's set and Deezer otherwise. |
 
 ### Optional

@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
 import { requirePlaying, replyError, truncate } from '../../utils/embeds.js';
+import { lrclibBase } from '../../utils/lrclib.js';
 
-const LRCLIB_BASE = 'https://lrclib.net/api';
 const ACCENT = parseInt(process.env.ACCENT_COLOR ?? '5865F2', 16);
 
 /**
@@ -11,7 +11,7 @@ const ACCENT = parseInt(process.env.ACCENT_COLOR ?? '5865F2', 16);
  */
 async function fetchLyrics(trackName, artistName) {
   // 1. Precise get
-  const getUrl = new URL(`${LRCLIB_BASE}/get`);
+  const getUrl = new URL(`${lrclibBase()}/get`);
   getUrl.searchParams.set('track_name', trackName);
   if (artistName) getUrl.searchParams.set('artist_name', artistName);
 
@@ -33,7 +33,7 @@ async function fetchLyrics(trackName, artistName) {
   }
 
   // 2. Fuzzy search fallback
-  const searchUrl = new URL(`${LRCLIB_BASE}/search`);
+  const searchUrl = new URL(`${lrclibBase()}/search`);
   searchUrl.searchParams.set('q', `${trackName} ${artistName}`.trim());
 
   const searchRes = await fetch(searchUrl, {
