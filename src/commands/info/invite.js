@@ -1,4 +1,5 @@
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder } from 'discord.js';
+import { box, message, small, withPicture } from '../../utils/ui.js';
 
 export default {
   data: new SlashCommandBuilder()
@@ -9,12 +10,10 @@ export default {
     const inviteUrl = process.env.INVITE_URL ||
       `https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&permissions=277293925376&scope=bot%20applications.commands`;
 
-    const e = new EmbedBuilder()
-      .setColor(parseInt(process.env.ACCENT_COLOR ?? '5865F2', 16))
-      .setTitle('Invite Rae')
-      .setDescription(`[Click here to invite me](${inviteUrl})`)
-      .setThumbnail(client.user.displayAvatarURL());
-
-    await interaction.reply({ embeds: [e] });
+    const open = new ButtonBuilder().setStyle(ButtonStyle.Link).setURL(inviteUrl).setLabel('Invite Rae');
+    await interaction.reply(message(
+      box(withPicture(`**Invite Rae**\n${small('Add the bot to your server.')}`, client.user.displayAvatarURL())),
+      new ActionRowBuilder().addComponents(open),
+    ));
   },
 };

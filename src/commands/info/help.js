@@ -1,10 +1,11 @@
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder } from 'discord.js';
+import { box, message, small, withPicture } from '../../utils/ui.js';
 
 const COMMANDS = [
   { category: 'Music',   list: ['play', 'search', 'nowplaying', 'queue', 'skip', 'pause', 'resume', 'volume', 'loop', 'shuffle'] },
   { category: 'Queue',   list: ['clear', 'remove', 'jump', 'move', 'previous', 'replay', 'seek', 'autoplay'] },
   { category: 'Player',  list: ['join', 'disconnect', '247', 'save', 'lyrics', 'debug'] },
-  { category: 'Info',    list: ['help', 'invite', 'nodes', 'ping', 'stats'] },
+  { category: 'Info',    list: ['help', 'invite', 'ping', 'stats'] },
 ];
 
 export default {
@@ -13,28 +14,17 @@ export default {
     .setDescription('Show all available commands'),
 
   async execute(interaction, client) {
-    const e = new EmbedBuilder()
-      .setColor(parseInt(process.env.ACCENT_COLOR ?? '5865F2', 16))
-      .setTitle('Rae — Commands')
-      .setDescription('A fast, lightweight Discord music bot. Use `/play` to get started.')
-      .setThumbnail(client.user.displayAvatarURL());
+    const sections = COMMANDS.map(({ category, list }) => `${small(category)}\n${list.map(c => `\`/${c}\``).join(' ')}`);
 
-    for (const { category, list } of COMMANDS) {
-      e.addFields({
-        name: category,
-        value: list.map(c => `\`/${c}\``).join(' '),
-        inline: false,
-      });
-    }
+    const links = [];
+    if (process.env.SUPPORT_SERVER) links.push(`[Support server](${process.env.SUPPORT_SERVER})`);
+    if (process.env.INVITE_URL) links.push(`[Add to your server](${process.env.INVITE_URL})`);
 
-    if (process.env.SUPPORT_SERVER) {
-      e.addFields({ name: 'Support', value: `[Join support server](${process.env.SUPPORT_SERVER})`, inline: true });
-    }
-    if (process.env.INVITE_URL) {
-      e.addFields({ name: 'Invite', value: `[Add to your server](${process.env.INVITE_URL})`, inline: true });
-    }
-
-    e.setFooter({ text: `${client.guilds.cache.size} servers • Requested by ${interaction.user.tag}` });
-    await interaction.reply({ embeds: [e] });
+    await interaction.reply(message(box(
+      withPicture(`**Rae — Commands**\n${small('A fast, lightweight Discord music bot. Use \`/play\` to get started.')}`, client.user.displayAvatarURL()),
+      sections.join('\n\n'),
+      links.join(' · '),
+      `-# ${client.guilds.cache.size} servers`,
+    )));
   },
 };

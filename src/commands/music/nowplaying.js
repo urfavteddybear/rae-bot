@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { requirePlaying, replyError, nowPlayingEmbed } from '../../utils/embeds.js';
+import { message, nowPlayingCard, requirePlaying } from '../../utils/ui.js';
 
 export default {
   data: new SlashCommandBuilder()
@@ -10,6 +10,6 @@ export default {
     const player = await requirePlaying(interaction);
     if (!player) return;
 
-    await interaction.reply({ embeds: [nowPlayingEmbed(player)] });
+    await interaction.reply(message(nowPlayingCard(player)));
   },
 };

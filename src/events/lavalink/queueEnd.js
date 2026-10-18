@@ -1,4 +1,4 @@
-import { embed } from '../../utils/embeds.js';
+import { say } from '../../utils/ui.js';
 import { topUpAutoplay } from '../../utils/autoplay.js';
 import { cancelLeaveTimers, getStay247 } from '../../utils/stay247.js';
 
@@ -29,7 +29,7 @@ export default {
     }
 
     if (channel?.isTextBased()) {
-      channel.send({ embeds: [embed('Queue finished. Add more songs with `/play`')] }).catch(() => {});
+      channel.send(say('Queue finished. Add more songs with `/play`')).catch(() => {});
     }
   },
 };

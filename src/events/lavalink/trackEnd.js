@@ -1,5 +1,5 @@
 import { log } from '../../utils/logger.js';
-import { embed } from '../../utils/embeds.js';
+import { say } from '../../utils/ui.js';
 
 export default {
   name: 'trackEnd',
@@ -10,7 +10,7 @@ export default {
     if (payload?.reason === 'loadFailed') {
       const channel = client.channels.cache.get(player.textChannelId);
       if (channel?.isTextBased()) {
-        channel.send({ embeds: [embed(`Failed to load **${track?.info?.title ?? 'Unknown'}** — skipping.`, 0xfee75c)] }).catch(() => {});
+        channel.send(say(`Failed to load **${track?.info?.title ?? 'Unknown'}** — skipping.`)).catch(() => {});
       }
     }
   },

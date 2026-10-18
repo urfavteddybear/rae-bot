@@ -1,5 +1,5 @@
 import { log } from '../../utils/logger.js';
-import { errorEmbed, truncate } from '../../utils/embeds.js';
+import { say, truncate } from '../../utils/ui.js';
 
 export default {
   name: 'trackError',
@@ -12,9 +12,7 @@ export default {
     if (!channel?.isTextBased()) return;
 
     try {
-      await channel.send({
-        embeds: [errorEmbed(`Failed to play **${truncate(track?.info?.title ?? 'track', 40)}**: ${errorMsg}`)],
-      });
+      await channel.send(say(`Failed to play **${truncate(track?.info?.title ?? 'track', 40)}**: ${errorMsg}`));
     } catch {
       // ignore
     }

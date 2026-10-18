@@ -2,9 +2,9 @@
  * Buttons under the "Now Playing" message: previous, pause/resume, next, stop, and a link to the
  * dashboard. Button ids start with `np:` so they never clash with the buttons of other commands.
  */
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { log } from './logger.js';
-import { nowPlayingEmbed } from './embeds.js';
+import { message, nowPlayingCard, quiet } from './ui.js';
 import { dashboardEnabled } from './features.js';
 
 const PREFIX = 'np:';
@@ -28,7 +28,7 @@ export async function loadPlayerEmoji(client) {
 }
 
 /** The dashboard address, or null when the dashboard isn't enabled. */
-function dashboardUrl() {
+export function dashboardUrl() {
   if (!dashboardEnabled() || !process.env.CLIENT_SECRET) return null;
   const url = process.env.DASHBOARD_URL ?? `http://localhost:${process.env.WEB_PORT ?? 3000}`;
   return /^https?:\/\//.test(url) ? url : null;
@@ -46,21 +46,23 @@ export function nowPlayingButtons(player) {
     button('stop', '⏹'),
   );
 
-  const rows = [controls];
   const url = dashboardUrl();
   if (url) {
     // A link button opens the dashboard in one click. Discord draws link buttons grey; only buttons that
     // trigger the bot can be blue, and those can't open a URL themselves.
     const open = new ButtonBuilder().setStyle(ButtonStyle.Link).setURL(url).setLabel('Open player');
     if (playerEmoji) open.setEmoji(playerEmoji);
-    rows.push(new ActionRowBuilder().addComponents(open));
+    controls.addComponents(open);
   }
-  return rows;
+  return [controls];
 }
+
+/** The whole Now Playing message: the card with the button row under it. */
+export const nowPlayingMessage = (player) => message(nowPlayingCard(player), ...nowPlayingButtons(player));
 
 export const isNowPlayingButton = (interaction) => interaction.isButton() && interaction.customId.startsWith(PREFIX);
 
-const ephemeral = (interaction, content) => interaction.reply({ content, flags: MessageFlags.Ephemeral });
+const ephemeral = (interaction, content) => interaction.reply(quiet(content));
 
 /** Handle a click on one of the buttons above. Same rules as the commands: be in the bot's channel. */
 export async function handleNowPlayingButton(interaction, client) {
@@ -79,7 +81,7 @@ export async function handleNowPlayingButton(interaction, client) {
         if (player.paused) await player.resume();
         else await player.pause();
         // Refresh the message so the button and the status line match.
-        return await interaction.update({ embeds: [nowPlayingEmbed(player)], components: nowPlayingButtons(player) });
+        return await interaction.update(nowPlayingMessage(player));
 
       case 'next':
         await interaction.deferUpdate();

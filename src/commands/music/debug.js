@@ -1,6 +1,6 @@
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder } from 'discord.js';
 import dns from 'dns/promises';
-import { replyError } from '../../utils/embeds.js';
+import { box, message, replyError, small } from '../../utils/ui.js';
 
 const REGION_NAMES = {
   sin: 'singapore/sin',
@@ -205,11 +205,10 @@ export default {
       `**RX last packet:** ${rxLastPacket} ms ago`,
     ].join('\n');
 
-    const embed = new EmbedBuilder()
-      .setTitle('Player debug')
-      .setDescription(description)
-      .setFooter({ text: 'Share this summary when asking for player help.' });
-
-    await interaction.editReply({ embeds: [embed] });
+    await interaction.editReply(message(box(
+      '**Player debug**',
+      small(description),
+      '-# Share this summary when asking for player help.',
+    )));
   },
 };

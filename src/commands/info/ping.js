@@ -1,4 +1,5 @@
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder } from 'discord.js';
+import { say, small } from '../../utils/ui.js';
 
 export default {
   data: new SlashCommandBuilder()
@@ -10,14 +11,6 @@ export default {
     const apiPing = client.ws.ping;
     const botPing = sent.createdTimestamp - interaction.createdTimestamp;
 
-    const e = new EmbedBuilder()
-      .setColor(parseInt(process.env.ACCENT_COLOR ?? '5865F2', 16))
-      .setTitle('Pong')
-      .addFields(
-        { name: 'Bot Latency', value: `\`${botPing}ms\``, inline: true },
-        { name: 'API Latency', value: `\`${apiPing}ms\``, inline: true },
-      );
-
-    await interaction.editReply({ embeds: [e] });
+    await interaction.editReply(say(`**Pong**\n${small(`Bot ${botPing}ms · API ${apiPing}ms`)}`));
   },
 };

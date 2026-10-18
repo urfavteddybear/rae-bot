@@ -1,6 +1,5 @@
-import { MessageFlags } from 'discord.js';
 import { log } from '../../utils/logger.js';
-import { replyError } from '../../utils/embeds.js';
+import { quiet, replyError } from '../../utils/ui.js';
 import { handleNowPlayingButton, isNowPlayingButton } from '../../utils/nowPlayingControls.js';
 
 const COOLDOWN_MS = 3000;
@@ -21,7 +20,7 @@ export default {
     if (!command) return;
 
     if (!interaction.inGuild()) {
-      return interaction.reply({ content: 'Commands only work inside a server.', flags: MessageFlags.Ephemeral }).catch(() => {});
+      return interaction.reply(quiet('Commands only work inside a server.')).catch(() => {});
     }
 
     // ── Per-command cooldown ────────────────────────────────────────────

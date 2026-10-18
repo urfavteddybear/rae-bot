@@ -1,13 +1,11 @@
 import {
   SlashCommandBuilder,
-  EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
-  MessageFlags,
 } from 'discord.js';
-import { requirePlayer, replyError, truncate, msToTime } from '../../utils/embeds.js';
+import { box, message, quiet, small, requirePlayer, replyError, say, trackLink, truncate, msToTime } from '../../utils/ui.js';
 
 const PAGE_SIZE = 10;
 
@@ -42,19 +40,19 @@ export default {
       const slice = tracks.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
       const queueList = slice.length
         ? slice.map((t, i) =>
-            `\`${safePage * PAGE_SIZE + i + 1}.\` **[${truncate(t.info.title, 40)}](${t.info.uri})** — ${truncate(t.info.author, 25)} \`${msToTime(t.info.duration)}\``
+            `\`${safePage * PAGE_SIZE + i + 1}.\` **${trackLink(t.info, 40)}** — ${truncate(t.info.author, 25)} \`${msToTime(t.info.duration)}\``
           ).join('\n')
         : '*No upcoming tracks.*';
 
       const totalDuration = tracks.reduce((acc, t) => acc + (t.info.duration ?? 0), 0);
 
-      const embed = new EmbedBuilder()
-        .setColor(parseInt(process.env.ACCENT_COLOR ?? '5865F2', 16))
-        .setTitle('Queue')
-        .setDescription(
-          `**Now Playing:**\n[${truncate(current?.info?.title ?? 'Nothing', 50)}](${current?.info?.uri ?? '#'}) — ${current?.info?.author ?? ''}\n\n**Up Next:**\n${queueList}`
-        )
-        .setFooter({ text: `Page ${safePage + 1}/${totalPages} • ${tracks.length} tracks • Total: ${msToTime(totalDuration)}` });
+      const nowPlaying = current
+        ? `${trackLink(current.info, 50)} — ${truncate(current.info.author, 30)}`
+        : 'Nothing';
+      const card = box(
+        `${small('Now playing')}\n${nowPlaying}\n\n${small('Up next')}\n${queueList}`,
+        `-# Page ${safePage + 1}/${totalPages} • ${tracks.length} tracks • Total: ${msToTime(totalDuration)}`,
+      );
 
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
@@ -79,7 +77,7 @@ export default {
           .setDisabled(safePage >= totalPages - 1),
       );
 
-      return { embed, row, totalPages, safePage };
+      return { card, row, totalPages, safePage };
     };
 
     const initial = buildQueueState(currentPage);
@@ -87,14 +85,13 @@ export default {
       return replyError(interaction, 'The queue is empty.');
     }
 
-    const payload = {
-      embeds: [initial.embed],
-      components: initial.totalPages > 1 ? [initial.row] : [],
-    };
+    const view = (state) => message(state.card, state.totalPages > 1 ? state.row : []);
 
-    const replyMsg = await interaction.reply({ ...payload, fetchReply: true });
+    const replyMsg = await interaction.reply({ ...view(initial), fetchReply: true });
 
     if (initial.totalPages <= 1) return;
+
+    let lastCard = initial.card;
 
     const collector = replyMsg.createMessageComponentCollector({
       componentType: ComponentType.Button,
@@ -103,10 +100,7 @@ export default {
 
     collector.on('collect', async (btn) => {
       if (btn.user.id !== interaction.user.id) {
-        return btn.reply({
-          content: 'Only the user who used `/queue` can navigate this menu.',
-          flags: MessageFlags.Ephemeral,
-        });
+        return btn.reply(quiet('Only the user who used `/queue` can navigate this menu.'));
       }
 
       if (btn.customId === 'queue_first') currentPage = 0;
@@ -117,23 +111,17 @@ export default {
       const state = buildQueueState(currentPage);
       if (!state) {
         collector.stop();
-        return btn.update({
-          content: 'The queue has ended.',
-          embeds: [],
-          components: [],
-        });
+        return btn.update(say('The queue has ended.'));
       }
 
       currentPage = state.safePage;
 
-      await btn.update({
-        embeds: [state.embed],
-        components: state.totalPages > 1 ? [state.row] : [],
-      });
+      lastCard = state.card;
+      await btn.update(view(state));
     });
 
     collector.on('end', () => {
-      replyMsg.edit({ components: [] }).catch(() => {});
+      replyMsg.edit(message(lastCard)).catch(() => {});
     });
   },
 };

@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { requireVoice, requireJoinable, replyError, replySuccess, embed, truncate } from '../../utils/embeds.js';
+import { requireVoice, requireJoinable, replyError, say, trackLink, requesterLabel, msToTime, truncate } from '../../utils/ui.js';
 import { MAX_QUEUE_SIZE, MAX_QUERY_LENGTH, isAllowedUrl } from '../../utils/limits.js';
 
 const SEARCH_ENGINES = {
@@ -91,19 +91,15 @@ export default {
       const tracks = res.tracks.slice(0, room);
       await player.queue.add(tracks);
       const capped = tracks.length < res.tracks.length ? ` (limited to ${tracks.length})` : '';
-      await interaction.editReply({
-        embeds: [embed(
-          `Added playlist **${truncate(res.playlist?.name ?? 'Unknown', 40)}** — **${tracks.length}** tracks${capped}`,
-        )],
-      });
+      await interaction.editReply(say(
+        `${requesterLabel(interaction.user)} added playlist **${truncate(res.playlist?.name ?? 'Unknown', 40)}** — ${tracks.length} tracks${capped} to the queue.`,
+      ));
     } else {
       const track = res.tracks[0];
       await player.queue.add(track);
-      await interaction.editReply({
-        embeds: [embed(
-          `Added **[${truncate(track.info.title)}](${track.info.uri})** by **${truncate(track.info.author, 30)}**`,
-        )],
-      });
+      await interaction.editReply(say(
+        `${requesterLabel(interaction.user)} added ${trackLink(track.info)} — ${truncate(track.info.author, 30)} \`[${msToTime(track.info.duration)}]\` to the queue.`,
+      ));
     }
 
     if (!player.playing && !player.paused) {

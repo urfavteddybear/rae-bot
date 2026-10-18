@@ -1,5 +1,5 @@
 import { log } from '../../utils/logger.js';
-import { warnEmbed, truncate } from '../../utils/embeds.js';
+import { say, truncate } from '../../utils/ui.js';
 
 export default {
   name: 'trackStuck',
@@ -11,9 +11,7 @@ export default {
     if (!channel?.isTextBased()) return;
 
     try {
-      await channel.send({
-        embeds: [warnEmbed(`Playback stuck on **${truncate(track?.info?.title ?? 'track', 40)}**. Skipping...`)],
-      });
+      await channel.send(say(`Playback stuck on **${truncate(track?.info?.title ?? 'track', 40)}**. Skipping...`));
     } catch {
       // ignore
     }

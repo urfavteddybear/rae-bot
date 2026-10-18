@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { requireVoice, requireJoinable, replyError, replySuccess } from '../../utils/embeds.js';
+import { requireVoice, requireJoinable, replyError, replySuccess } from '../../utils/ui.js';
 
 export default {
   data: new SlashCommandBuilder()

@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
-import { requireVoice, requireJoinable, replyError, embed, truncate, msToTime } from '../../utils/embeds.js';
+import { requireVoice, requireJoinable, message, replyError, say, box, small, trackLink, truncate, msToTime } from '../../utils/ui.js';
 import { MAX_QUEUE_SIZE, MAX_QUERY_LENGTH } from '../../utils/limits.js';
 
 const SEARCH_ENGINES = {
@@ -69,7 +69,7 @@ export default {
 
     const results = res.tracks.slice(0, 5);
     const desc = results.map((t, i) =>
-      `**${i + 1}.** [${truncate(t.info.title, 45)}](${t.info.uri}) — ${t.info.author} \`${msToTime(t.info.duration)}\``
+      `**${i + 1}.** ${trackLink(t.info, 45)} — ${t.info.author} \`${msToTime(t.info.duration)}\``
     ).join('\n');
 
     const buttons = results.map((_, i) =>
@@ -80,10 +80,8 @@ export default {
     );
 
     const row = new ActionRowBuilder().addComponents(...buttons);
-    const msg = await interaction.editReply({
-      embeds: [embed(`**Search results for:** ${rawQuery}\n\n${desc}`)],
-      components: [row],
-    });
+    const card = box(`${small(`Results for ${truncate(rawQuery, 80)}`)}\n${desc}`);
+    const msg = await interaction.editReply(message(card, row));
 
     const collector = msg.createMessageComponentCollector({
       componentType: ComponentType.Button,
@@ -96,19 +94,16 @@ export default {
       const idx = parseInt(btn.customId.split('_')[1]);
       const track = results[idx];
       if (player.queue.tracks.length >= MAX_QUEUE_SIZE) {
-        return btn.update({ embeds: [embed(`The queue is full (${MAX_QUEUE_SIZE} tracks).`)], components: [] });
+        return btn.update(say(`The queue is full (${MAX_QUEUE_SIZE} tracks).`));
       }
       await player.queue.add(track);
       if (!player.playing && !player.paused) await player.play();
-      await btn.update({
-        embeds: [embed(`Added **[${truncate(track.info.title)}](${track.info.uri})** to the queue.`)],
-        components: [],
-      });
+      await btn.update(say(`Added ${trackLink(track.info)} to the queue.`));
     });
 
     collector.on('end', (collected) => {
       if (collected.size === 0) {
-        msg.edit({ components: [] }).catch(() => {});
+        msg.edit(message(card)).catch(() => {});
       }
     });
   },

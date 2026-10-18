@@ -1,8 +1,6 @@
-import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
-import { requirePlaying, replyError, truncate } from '../../utils/embeds.js';
+import { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
+import { box, message, requirePlaying, say, truncate } from '../../utils/ui.js';
 import { lrclibBase } from '../../utils/lrclib.js';
-
-const ACCENT = parseInt(process.env.ACCENT_COLOR ?? '5865F2', 16);
 
 /**
  * Query lrclib.net for lyrics.
@@ -62,8 +60,8 @@ function stripTimestamps(lrc) {
   return lrc.replace(/^\[[\d:.]+\]\s*/gm, '').trim();
 }
 
-/** Split text into ≤4000-char pages breaking on newlines. */
-function paginate(text, maxLen = 3900) {
+/** Split text into pages (a message holds 4000 characters of text in total, title and footer included) breaking on newlines. */
+function paginate(text, maxLen = 3500) {
   const lines = text.split('\n');
   const pages = [];
   let page = '';
@@ -116,22 +114,14 @@ export default {
     try {
       result = await fetchLyrics(trackName, artistName);
     } catch (err) {
-      return interaction.editReply({
-        embeds: [new EmbedBuilder()
-          .setColor(0xed4245)
-          .setDescription(`Could not reach lrclib.net: \`${err.message}\``)],
-      });
+      return interaction.editReply(say(`Could not reach lrclib.net: \`${err.message}\``));
     }
 
     if (!result) {
-      return interaction.editReply({
-        embeds: [new EmbedBuilder()
-          .setColor(0xfee75c)
-          .setDescription(
-            `No lyrics found for **${truncate(trackName, 40)}**${artistName ? ` by **${truncate(artistName, 30)}**` : ''}.\n\n` +
-            `Try specifying the song with \`/lyrics query:Song Title - Artist Name\`.`
-          )],
-      });
+      return interaction.editReply(say(
+        `No lyrics found for **${truncate(trackName, 40)}**${artistName ? ` by **${truncate(artistName, 30)}**` : ''}.\n\n` +
+        `Try specifying the song with \`/lyrics query:Song Title - Artist Name\`.`,
+      ));
     }
 
     // ── Pick text ──────────────────────────────────────────────────────────
@@ -150,24 +140,14 @@ export default {
 
     // ── Single page — no buttons needed ───────────────────────────────────
     if (pages.length === 1) {
-      return interaction.editReply({
-        embeds: [new EmbedBuilder()
-          .setColor(ACCENT)
-          .setTitle(title)
-          .setDescription(pages[0])
-          .setFooter({ text: `Source: ${sourceLabel}` })],
-      });
+      return interaction.editReply(message(box(`**${title}**`, pages[0], `-# Source: ${sourceLabel}`)));
     }
 
     // ── Multi-page with Prev / Next buttons ────────────────────────────────
     let currentPage = 0;
 
-    const buildEmbed = (page) =>
-      new EmbedBuilder()
-        .setColor(ACCENT)
-        .setTitle(title)
-        .setDescription(pages[page])
-        .setFooter({ text: `Page ${page + 1}/${pages.length} • Source: ${sourceLabel}` });
+    const buildCard = (page) =>
+      box(`**${title}**`, pages[page], `-# Page ${page + 1}/${pages.length} • Source: ${sourceLabel}`);
 
     const buildRow = (page) =>
       new ActionRowBuilder().addComponents(
@@ -183,10 +163,7 @@ export default {
           .setDisabled(page === pages.length - 1),
       );
 
-    const msg = await interaction.editReply({
-      embeds: [buildEmbed(currentPage)],
-      components: [buildRow(currentPage)],
-    });
+    const msg = await interaction.editReply(message(buildCard(currentPage), buildRow(currentPage)));
 
     const collector = msg.createMessageComponentCollector({
       componentType: ComponentType.Button,
@@ -197,14 +174,11 @@ export default {
     collector.on('collect', async (btn) => {
       if (btn.customId === 'lyrics_prev') currentPage = Math.max(0, currentPage - 1);
       if (btn.customId === 'lyrics_next') currentPage = Math.min(pages.length - 1, currentPage + 1);
-      await btn.update({
-        embeds: [buildEmbed(currentPage)],
-        components: [buildRow(currentPage)],
-      });
+      await btn.update(message(buildCard(currentPage), buildRow(currentPage)));
     });
 
     collector.on('end', () => {
-      msg.edit({ components: [] }).catch(() => {});
+      msg.edit(message(buildCard(currentPage))).catch(() => {});
     });
   },
 };

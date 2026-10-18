@@ -114,8 +114,8 @@ Edit `.env`. Everything below goes in that one file.
 | `DEFAULT_SEARCH_ENGINE` | `dzsearch` | Search source for `/play` (`dzsearch`, `ytsearch`, `scsearch`, `amsearch`, `spsearch`). |
 | `QUEUE_LIMIT` | unlimited | Maximum tracks per queue. |
 | `ALLOWED_URL_HOSTS` | built-in list | Extra hosts `/play` may load links from, comma separated. |
-| `OWNER_IDS` | none | Discord user IDs allowed to see Lavalink addresses in `/nodes`. |
-| `INVITE_URL`, `SUPPORT_SERVER`, `ACCENT_COLOR` | | Cosmetic settings for `/invite`, `/help` and embeds. |
+| `OWNER_IDS` | none | Discord user IDs allowed to see Lavalink addresses in `/stats`. |
+| `INVITE_URL`, `SUPPORT_SERVER` | | Links shown by `/invite` and `/help`. |
 | `GUILD_ID` | none | Used only by `npm run deploy`: register slash commands in this one server (instant) instead of globally (up to an hour). |
 
 A production `.env` looks like this:

@@ -1,8 +1,7 @@
 import { log } from '../../utils/logger.js';
-import { nowPlayingEmbed } from '../../utils/embeds.js';
 import { topUpAutoplay } from '../../utils/autoplay.js';
 import { recordPlay } from '../../utils/db.js';
-import { nowPlayingButtons } from '../../utils/nowPlayingControls.js';
+import { nowPlayingMessage } from '../../utils/nowPlayingControls.js';
 
 export default {
   name: 'trackStart',
@@ -25,7 +24,7 @@ export default {
     }
 
     try {
-      const msg = await channel.send({ embeds: [nowPlayingEmbed(player)], components: nowPlayingButtons(player) });
+      const msg = await channel.send(nowPlayingMessage(player));
       player.set('nowPlayingMessage', msg);
     } catch (err) {
       log.warn(`trackStart: could not send to channel ${player.textChannelId}: ${err.message}`);

@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { replyError, embed } from '../../utils/embeds.js';
+import { replyError, say } from '../../utils/ui.js';
 import { applyStay247, getStay247 } from '../../utils/stay247.js';
 
 export default {
@@ -27,23 +27,9 @@ export default {
     });
 
     if (enable) {
-      return interaction.reply({
-        embeds: [
-          embed(
-            '**24/7 mode enabled.** The bot stays in the voice channel even when nothing is playing (resets when the bot restarts).',
-            0x57f287,
-          ),
-        ],
-      });
+      return interaction.reply(say('**24/7 mode enabled.** The bot stays in the voice channel even when nothing is playing (resets when the bot restarts).'));
     }
 
-    return interaction.reply({
-      embeds: [
-        embed(
-          '**24/7 mode disabled.** The bot leaves when the queue ends or the channel is empty.',
-          0xed4245,
-        ),
-      ],
-    });
+    return interaction.reply(say('**24/7 mode disabled.** The bot leaves when the queue ends or the channel is empty.'));
   },
 };

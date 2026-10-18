@@ -196,9 +196,8 @@ An Apple Music-style web player for your servers: now playing with live progress
 |---------|-------------|
 | `/help` | Show all commands |
 | `/invite` | Get the bot invite link |
-| `/nodes` | Show Lavalink node status |
 | `/ping` | Show bot and API latency |
-| `/stats` | Show bot statistics |
+| `/stats` | Bot, playback and Lavalink backend statistics |
 
 ---
 
@@ -232,7 +231,6 @@ The `bot` service depends on `lavalink` with a health check — it will wait up 
 | `DEFAULT_SEARCH_ENGINE` | ❌ | `dzsearch` | Default search prefix |
 | `INVITE_URL` | ❌ | auto-generated | Bot invite URL |
 | `SUPPORT_SERVER` | ❌ | — | Support server invite |
-| `ACCENT_COLOR` | ❌ | `5865F2` | Embed accent colour (hex) |
 | `LASTFM_API_KEY` | ❌ | — | Last.fm key for better autoplay recommendations |
 | `LRCLIB_URL` | ❌ | `https://lrclib.net/api` | lrclib API base for lyrics. Set it to route lookups through your own server or proxy (same `/get` and `/search` endpoints) |
 | `DASHBOARD` | ❌ | `false` | `true` turns the web dashboard on (needs `CLIENT_SECRET`). Off = lean bot: no web server, no database, no profile |
@@ -243,7 +241,7 @@ The `bot` service depends on `lavalink` with a health check — it will wait up 
 | `TRUST_PROXY` | ❌ | `0` | Number of reverse proxies in front of the dashboard |
 | `QUEUE_LIMIT` | ❌ | unlimited | Max tracks per queue |
 | `ALLOWED_URL_HOSTS` | ❌ | — | Extra hosts `/play` may load links from |
-| `OWNER_IDS` | ❌ | — | User IDs that can see Lavalink addresses in `/nodes` |
+| `OWNER_IDS` | ❌ | — | User IDs that can see Lavalink addresses in `/stats` |
 | `GUILD_ID` | ❌ | — | If set, deploy commands to this guild only (faster for testing) |
 
 ---
@@ -263,7 +261,7 @@ rae/
 │   │   └── lavalink/         # trackStart, trackEnd, queueEnd, nodeConnect
 │   ├── handlers/             # Command & event auto-loaders
 │   └── utils/
-│       ├── embeds.js         # Shared embed builders & guards
+│       ├── ui.js             # Shared message builders (Components V2) & guards
 │       ├── logger.js         # Lightweight colour logger
 │       └── stay247.js        # In-memory 24/7 state store
 ├── lavalink/

@@ -1,5 +1,5 @@
-import { SlashCommandBuilder, EmbedBuilder, MessageFlags } from 'discord.js';
-import { requirePlaying, replyError, truncate } from '../../utils/embeds.js';
+import { SlashCommandBuilder } from 'discord.js';
+import { box, message, quiet, requirePlaying, trackLink, truncate, withPicture } from '../../utils/ui.js';
 
 export default {
   data: new SlashCommandBuilder()
@@ -11,22 +11,16 @@ export default {
     if (!player) return;
 
     const track = player.queue.current;
-    const e = new EmbedBuilder()
-      .setColor(parseInt(process.env.ACCENT_COLOR ?? '5865F2', 16))
-      .setTitle(truncate(track.info.title, 60))
-      .setURL(track.info.uri ?? null)
-      .setThumbnail(track.info.artworkUrl ?? null)
-      .addFields(
-        { name: 'Artist', value: track.info.author ?? 'Unknown', inline: true },
-        { name: 'Server', value: interaction.guild.name, inline: true },
-      )
-      .setFooter({ text: `Saved by ${interaction.user.tag}` });
+    const card = box(
+      withPicture(`**${trackLink(track.info)}** — ${truncate(track.info.author, 30)}`, track.info.artworkUrl),
+      `-# Saved from ${interaction.guild.name}`,
+    );
 
     try {
-      await interaction.user.send({ embeds: [e] });
-      await interaction.reply({ content: 'Track sent to your DMs.', flags: MessageFlags.Ephemeral });
+      await interaction.user.send(message(card));
+      await interaction.reply(quiet('Track sent to your DMs.'));
     } catch {
-      await interaction.reply({ content: 'Cannot send direct messages. Please enable DMs from server members.', flags: MessageFlags.Ephemeral });
+      await interaction.reply(quiet('Cannot send direct messages. Please enable DMs from server members.'));
     }
   },
 };

@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { requirePlayer, replySuccess } from '../../utils/embeds.js';
+import { requirePlayer, replySuccess } from '../../utils/ui.js';
 import { lastfmEnabled, setAutoplay } from '../../utils/autoplay.js';
 
 export default {
