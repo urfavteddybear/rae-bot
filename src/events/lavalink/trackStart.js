@@ -1,12 +1,16 @@
 import { log } from '../../utils/logger.js';
 import { topUpAutoplay } from '../../utils/autoplay.js';
 import { recordPlay } from '../../utils/db.js';
+import { takeQuietRestart } from '../../utils/playback.js';
 import { nowPlayingMessage } from '../../utils/nowPlayingControls.js';
 
 export default {
   name: 'trackStart',
   emitter: 'player',
   async execute(player, track, payload, client) {
+    // A resume that reloaded the track is the same play: no new message, no extra count.
+    if (takeQuietRestart(player)) return;
+
     // Queue the next songs now so autoplay never leaves a gap (and shows up in the queue).
     topUpAutoplay(player).catch(() => {});
 

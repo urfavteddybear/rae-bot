@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
+import { pausePlayer } from '../../utils/playback.js';
 import { requirePlayer, replyError, replySuccess } from '../../utils/ui.js';
 
 export default {
@@ -11,7 +12,7 @@ export default {
     if (!player) return;
 
     if (player.paused) return replyError(interaction, 'Already paused. Use `/resume`.');
-    await player.pause();
+    await pausePlayer(player);
     await replySuccess(interaction, 'Paused the player. Use `/resume` to continue.');
   },
 };

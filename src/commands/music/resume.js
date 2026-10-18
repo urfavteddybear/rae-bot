@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
+import { resumePlayer } from '../../utils/playback.js';
 import { requirePlayer, replyError, replySuccess } from '../../utils/ui.js';
 
 export default {
@@ -11,7 +12,7 @@ export default {
     if (!player) return;
 
     if (!player.paused) return replyError(interaction, 'The player is not paused.');
-    await player.resume();
+    await resumePlayer(player);
     await replySuccess(interaction, 'Resumed playback.');
   },
 };

@@ -6,6 +6,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { log } from './logger.js';
 import { message, nowPlayingCard, quiet } from './ui.js';
 import { dashboardEnabled } from './features.js';
+import { pausePlayer, resumePlayer } from './playback.js';
 
 const PREFIX = 'np:';
 const PLAYER_EMOJI = 'airplay'; // name of the application emoji used on the "Open player" button
@@ -78,8 +79,8 @@ export async function handleNowPlayingButton(interaction, client) {
   try {
     switch (action) {
       case 'pause':
-        if (player.paused) await player.resume();
-        else await player.pause();
+        if (player.paused) await resumePlayer(player);
+        else await pausePlayer(player);
         // Refresh the message so the button and the status line match.
         return await interaction.update(nowPlayingMessage(player));
 

@@ -1,6 +1,7 @@
 import { MAX_QUEUE_SIZE } from '../utils/limits.js';
 import { resetAutoplay, setAutoplay } from '../utils/autoplay.js';
 import { findSong } from './catalog.js';
+import { pausePlayer, resumePlayer } from '../utils/playback.js';
 import { applyStay247, getStay247 } from '../utils/stay247.js';
 
 const DEEZER_URL = /^https:\/\/(www\.)?deezer\.com\/(?:[a-z]{2}\/)?(track|album|artist|playlist)\/\d{1,15}$/;
@@ -157,14 +158,14 @@ export async function perform(client, guild, user, action, body = {}) {
 
   switch (action) {
     case 'pause':
-      if (!player.paused) await player.pause();
+      if (!player.paused) await pausePlayer(player);
       break;
     case 'resume':
-      if (player.paused) await player.resume();
+      if (player.paused) await resumePlayer(player);
       break;
     case 'toggle':
-      if (player.paused) await player.resume();
-      else await player.pause();
+      if (player.paused) await resumePlayer(player);
+      else await pausePlayer(player);
       break;
     case 'skip':
       if (!queue.current) throw new ControlError('Nothing is playing right now.', 404);
