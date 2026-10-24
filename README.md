@@ -177,7 +177,7 @@ An Apple Music-style web player for your servers: now playing with live progress
 | `/previous` | Play the previous track |
 | `/replay` | Restart the current track |
 | `/seek [time]` | Seek to a timestamp (e.g. `1:30` or `90`) |
-| `/autoplay` | Toggle autoplay (queues 20 related songs at a time) |
+| `/autoplay` | Toggle autoplay (queues 20 related songs at a time; for a YouTube song it uses YouTube's own mix) |
 
 ### 🔧 Player
 

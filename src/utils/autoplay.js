@@ -4,7 +4,9 @@
  * One song is the seed: the one playing when the queue runs out, or the one a person just chose to play
  * right now. Its 20 strongest matches are queued, and when those run out the last song seeds the next 20.
  *
- * With LASTFM_API_KEY set, similar songs come from Last.fm, strongest match first (Deezer only looks
+ * For a YouTube song, the batch is simply YouTube's own mix for it (the song itself aside, as is).
+ * For songs from any other source:
+ * with LASTFM_API_KEY set, similar songs come from Last.fm, strongest match first (Deezer only looks
  * them up). Without it, or when Last.fm knows nothing about the song, they come from Deezer's public API:
  * the artist's radio plus the top songs of similar artists. Songs from any source (Spotify, Apple Music,
  * ...) are mapped to Deezer by ISRC, falling back to a title + artist search. Playback always goes
@@ -224,6 +226,20 @@ async function fallbackTrack(player, seed, seen) {
   return res?.tracks?.find((t) => !seen.has(keyOf(t.info.title, t.info.author)) && !BAD_VERSION.test(t.info.title)) ?? null;
 }
 
+const isYoutube = (track) => track.info.sourceName === 'youtube' && /^[\w-]{11}$/.test(track.info.identifier ?? '');
+
+/**
+ * YouTube's own mix for a YouTube song, in YouTube's order. The song itself is dropped (the mix starts
+ * with it); everything else is used as is, since it is already YouTube's idea of what goes with the song.
+ * Empty when the mix can't be loaded.
+ */
+async function youtubeMix(player, seed, count) {
+  const id = seed.info.identifier;
+  const res = await player.search({ query: `https://www.youtube.com/watch?v=${id}&list=RD${id}` }, AUTOPLAY_REQUESTER);
+  if (res?.loadType !== 'playlist') return [];
+  return res.tracks.filter((t) => t.info.identifier !== id && !t.info.isStream).slice(0, count);
+}
+
 const generation = (player) => player.get('autoplayGen') ?? 0;
 
 /** Remove the songs autoplay queued (songs people queued stay). */
@@ -254,11 +270,23 @@ export async function topUpAutoplay(player, count = BATCH) {
   let added = 0;
   let stale = false;
   try {
-    const ctx = { seed, lastfm: await lastfmSimilar(seed.info.author, seed.info.title), seen: collectSeen(player), deezerPools: null };
-    const useLastfm = ctx.lastfm.length > 0;
-    if (!useLastfm) await loadDeezerPools(ctx);
+    if (isYoutube(seed)) {
+      const mix = await youtubeMix(player, seed, need).catch((err) => { log.warn(`autoplay: YouTube mix: ${err.message}`); return []; });
+      if (generation(player) !== gen) stale = true;
+      else for (const track of mix) {
+        await player.queue.add(track);
+        added += 1;
+      }
+    }
 
-    for (let i = 0; i < need; i++) {
+    // Songs from Deezer, Spotify, ... (or a YouTube song whose mix didn't load) go through Last.fm and Deezer.
+    const needMore = !added && !stale;
+    const ctx = { seed, lastfm: [], seen: collectSeen(player), deezerPools: null };
+    if (needMore) ctx.lastfm = await lastfmSimilar(seed.info.author, seed.info.title);
+    const useLastfm = ctx.lastfm.length > 0;
+    if (needMore && !useLastfm) await loadDeezerPools(ctx);
+
+    for (let i = 0; needMore && i < need; i++) {
       let pick = useLastfm ? await pickLastfm(ctx) : await pickDeezer(ctx);
       // Last.fm knew the song but nothing it suggested could be played: fall back to Deezer's picks.
       if (!pick && useLastfm && !added) {
